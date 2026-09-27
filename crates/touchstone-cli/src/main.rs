@@ -49,6 +49,9 @@ enum Cmd {
         /// Write the attestation here instead of stdout.
         #[arg(short, long)]
         out: Option<PathBuf>,
+        /// Adapter wall-clock timeout in seconds (default 600).
+        #[arg(long)]
+        timeout: Option<u64>,
     },
     /// Sign an unsigned attestation JSON file with a fresh or given key.
     Attest {
@@ -135,6 +138,7 @@ fn cmd_run(
     subject_version: String,
     adapter_args: Vec<String>,
     out: Option<PathBuf>,
+    timeout: Option<u64>,
 ) -> ExitCode {
     let program = match resolve_adapter(adapter) {
         Ok(p) => p,
@@ -146,6 +150,9 @@ fn cmd_run(
     eprintln!("[touchstone] driving adapter: {program}");
     let mut exec = ExecAdapter::new(program);
     exec.args = adapter_args;
+    if let Some(t) = timeout {
+        exec.timeout = std::time::Duration::from_secs(t);
+    }
     let checks = match exec.collect() {
         Ok(c) => c,
         Err(e) => {
@@ -305,7 +312,8 @@ fn main() -> ExitCode {
             subject_version,
             adapter_args,
             out,
-        } => cmd_run(&adapter, subject, subject_version, adapter_args, out),
+            timeout,
+        } => cmd_run(&adapter, subject, subject_version, adapter_args, out, timeout),
         Cmd::Attest { file, key, out } => cmd_attest(&file, key.as_deref(), out),
         Cmd::Verify { file } => cmd_verify(&file),
         Cmd::Explore { file } => cmd_explore(&file),

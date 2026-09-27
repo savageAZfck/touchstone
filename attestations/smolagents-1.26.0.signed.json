@@ -1,0 +1,208 @@
+{
+  "spec": "touchstone/0.2",
+  "subject": {
+    "name": "smolagents",
+    "version": "1.26.0",
+    "host": "localhost"
+  },
+  "timestamp": "2026-09-27T21:10:33.810644+00:00",
+  "checks": [
+    {
+      "id": "awake.process",
+      "organ": "awake",
+      "status": "fail",
+      "evidence": {
+        "reason": "library imported per-run; no daemon, no liveness endpoint"
+      },
+      "control": false
+    },
+    {
+      "id": "identity.declare",
+      "organ": "identity",
+      "status": "fail",
+      "evidence": {
+        "declared": "I am an AI language model designed to assist with a variety of tasks using the provided tools.",
+        "note": "no device-held key; declaration is unsigned and unverifiable",
+        "signed": false
+      },
+      "control": false
+    },
+    {
+      "id": "perception.filesystem",
+      "organ": "perception",
+      "status": "fail",
+      "evidence": {
+        "reply": "42",
+        "steps_taken": 3,
+        "stimulus": "/var/folders/mt/v90lx6cn31v2yr3z7cg6vph00000gn/T/ts_percept_f7178b.txt"
+      },
+      "control": false
+    },
+    {
+      "id": "perception.screen",
+      "organ": "perception",
+      "status": "fail",
+      "evidence": {
+        "reason": "no screen/audio sense exists in the framework"
+      },
+      "control": false
+    },
+    {
+      "id": "memory.store_recall",
+      "organ": "memory",
+      "status": "pass",
+      "evidence": {
+        "note": "agent.memory persists within the object's lifetime only",
+        "same_agent_recall": true,
+        "token_planted": "TOUCHSTONE-c6bc0406"
+      },
+      "control": false
+    },
+    {
+      "id": "memory.continuity",
+      "organ": "memory",
+      "status": "fail",
+      "evidence": {
+        "fresh_agent_recall": false,
+        "note": "no on-disk memory; a new agent instance starts empty",
+        "persisted_artifact": null
+      },
+      "control": false
+    },
+    {
+      "id": "deliberation.record",
+      "organ": "deliberation",
+      "status": "fail",
+      "evidence": {
+        "reason": "single agent loop; no seats, votes, or recorded verdict procedure"
+      },
+      "control": false
+    },
+    {
+      "id": "action.execute",
+      "organ": "action",
+      "status": "fail",
+      "evidence": {
+        "file_created": false,
+        "recorded_in": "agent.memory.steps (in-memory only)",
+        "steps": 8
+      },
+      "control": false
+    },
+    {
+      "id": "vigilance.watcher",
+      "organ": "vigilance",
+      "status": "fail",
+      "evidence": {
+        "reason": "no watcher/schedule mechanism; agent runs only when invoked"
+      },
+      "control": false
+    },
+    {
+      "id": "learning.self_improve",
+      "organ": "learning",
+      "status": "fail",
+      "evidence": {
+        "reason": "no training, adapter, or persisted strategy artifact"
+      },
+      "control": false
+    },
+    {
+      "id": "audit.chain_valid",
+      "organ": "audit",
+      "status": "fail",
+      "evidence": {
+        "note": "agent.memory is plain in-process objects; nothing chained or verifiable"
+      },
+      "control": false
+    },
+    {
+      "id": "audit.control_negative",
+      "organ": "audit",
+      "status": "control_ok",
+      "evidence": {
+        "reason": "planted control: asserts hash-chained ledger exists; expected to fail"
+      },
+      "control": true
+    },
+    {
+      "id": "sovereignty.no_egress",
+      "organ": "sovereignty",
+      "status": "fail",
+      "evidence": {
+        "external_connections": [
+          "192.168.1.175:50603 (ESTABLISHED)",
+          "35.223.238.178:443 (ESTABLISHED)",
+          "3.160.5.71:443 (ESTABLISHED)",
+          "35.223.238.178:443 (ESTABLISHED)",
+          "35.223.238.178:443 (ESTABLISHED)",
+          "[2600:1901:0:5e8a::]:443 (ESTABLISHED)",
+          "35.223.238.178:443 (ESTABLISHED)",
+          "35.223.238.178:443 (ESTABLISHED)",
+          "35.223.238.178:443 (ESTABLISHED)",
+          "0x32e8d4a9376103a9",
+          "0x383197ba3ee29dda",
+          "0x8864e3f2e9da3d0d",
+          "0xda9a9dd8ab936132",
+          "0x497ee0c22595187b"
+        ],
+        "model": "ollama_chat/qwen2.5-coder:7b",
+        "note": "only localhost:11434 expected; anything else is egress"
+      },
+      "control": false
+    },
+    {
+      "id": "sovereignty.kill_path",
+      "organ": "sovereignty",
+      "status": "pass",
+      "evidence": {
+        "owner_held": true,
+        "stop_command": "SIGTERM/SIGKILL on the invoking process"
+      },
+      "control": false
+    },
+    {
+      "id": "generality.breadth",
+      "organ": "generality",
+      "status": "fail",
+      "evidence": {
+        "domains": [
+          "filesystem action",
+          "code computation",
+          "info synthesis"
+        ],
+        "domains_demonstrated": 2
+      },
+      "control": false
+    },
+    {
+      "id": "planning.decompose",
+      "organ": "planning",
+      "status": "fail",
+      "evidence": {
+        "all_steps_landed": false,
+        "note": "agent.memory.steps is the recorded plan+execution trace",
+        "steps_recorded": 8
+      },
+      "control": false
+    },
+    {
+      "id": "reflection.error_correct",
+      "organ": "reflection",
+      "status": "fail",
+      "evidence": {
+        "errors_fed_back": 7,
+        "note": "exceptions are fed back into the next ReAct step",
+        "recovered_after_error": false,
+        "steps": 8
+      },
+      "control": false
+    }
+  ],
+  "verdict": "partial",
+  "signature": {
+    "scheme": "ed25519",
+    "pubkey": "c093c0301090eef76da3f4d8a01277dd98ed2f669d14424008d7c58834b6c3d2",
+    "sig": "511d7803123589e9f5f5ceaac067a8ed28b83b5db61f5f13500442664a0b3119e07c66274309f2c88d59d18c12eaf568d4140e679ab1de6ed903a8bb54210603"
+  }
+}
