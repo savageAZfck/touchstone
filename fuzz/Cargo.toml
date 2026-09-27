@@ -1,0 +1,13 @@
+[package]
+name = "touchstone-fuzz"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+libfuzzer-sys = "0.4"
+touchstone-core = { path = "../crates/touchstone-core" }
+serde_json = "1.0"
+
+[workspace]
+members = []
