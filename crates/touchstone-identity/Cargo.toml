@@ -1,0 +1,24 @@
+[package]
+name = "touchstone-identity"
+description = "Device-bound attestation signing: Secure Enclave (macOS) + Ed25519 fallback"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[features]
+default = []
+secure-enclave = ["dep:security-framework"]
+
+[dependencies]
+touchstone-core = { path = "../touchstone-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ed25519-dalek = { workspace = true }
+rand = { workspace = true }
+hex = { workspace = true }
+thiserror = { workspace = true }
+security-framework = { version = "3", optional = true }

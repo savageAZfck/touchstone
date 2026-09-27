@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/touchstone-core",
+    "crates/touchstone-harness",
+    "crates/touchstone-cli",
+    "crates/touchstone-identity",
+    "crates/touchstone-wasm",
+    "adapters/badapple",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Adam Clark <savagetism@icloud.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/savageAZfck/touchstone"
+homepage = "https://github.com/savageAZfck/touchstone"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "2"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand = "0.8"
+clap = { version = "4", features = ["derive", "env"] }

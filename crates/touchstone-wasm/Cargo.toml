@@ -1,0 +1,22 @@
+[package]
+name = "touchstone-wasm"
+description = "Browser bindings for touchstone attestation verification"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+touchstone-core = { path = "../touchstone-core" }
+touchstone-identity = { path = "../touchstone-identity" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+hex = { workspace = true }
+sha2 = { workspace = true }
+wasm-bindgen = "0.2"

@@ -1,0 +1,25 @@
+[package]
+name = "touchstone-cli"
+description = "The touchstone binary: run the conformance battery, sign and verify attestations"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[[bin]]
+name = "touchstone"
+path = "src/main.rs"
+
+[dependencies]
+touchstone-core = { path = "../touchstone-core" }
+touchstone-harness = { path = "../touchstone-harness" }
+touchstone-identity = { path = "../touchstone-identity" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+chrono = "0.4"
