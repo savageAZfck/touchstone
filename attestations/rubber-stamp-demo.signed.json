@@ -1,11 +1,11 @@
 {
-  "spec": "touchstone/0.1",
+  "spec": "touchstone/0.2",
   "subject": {
     "name": "rubber-stamp-demo",
     "version": "0.0.0",
     "host": "localhost"
   },
-  "timestamp": "2026-09-27T18:36:28.210100+00:00",
+  "timestamp": "2026-09-27T19:15:24.513621+00:00",
   "checks": [
     {
       "id": "awake.alive",
@@ -98,6 +98,33 @@
       "control": false
     },
     {
+      "id": "generality.breadth",
+      "organ": "generality",
+      "status": "pass",
+      "evidence": {
+        "claimed": true
+      },
+      "control": false
+    },
+    {
+      "id": "planning.decompose",
+      "organ": "planning",
+      "status": "pass",
+      "evidence": {
+        "claimed": true
+      },
+      "control": false
+    },
+    {
+      "id": "reflection.error_correct",
+      "organ": "reflection",
+      "status": "pass",
+      "evidence": {
+        "claimed": true
+      },
+      "control": false
+    },
+    {
       "id": "audit.control_negative",
       "organ": "audit",
       "status": "pass",
@@ -111,6 +138,6 @@
   "signature": {
     "scheme": "ed25519",
     "pubkey": "c093c0301090eef76da3f4d8a01277dd98ed2f669d14424008d7c58834b6c3d2",
-    "sig": "232163e4031a908da188ca13de60e57d5538e91bcd994ab6ae91ed575b4bcd7bdef63486ba76b516987e85237ff5123d2a77c2aef5aecb281035e5bfe207200a"
+    "sig": "b31810ecf56dcb6671aa96084f91ed8e3a8ec83cb07088be4169992a0f7c93b92e0be88c4e3d75b0b8c5c55dd2813b9cfbf30a84f5a784035af31ab52ca91809"
   }
 }

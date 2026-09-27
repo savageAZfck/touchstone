@@ -109,4 +109,22 @@ emit("sovereignty.no_egress", "sovereignty", "pass" if not ext else "fail",
 emit("sovereignty.kill_path", "sovereignty", "pass",
      {"stop_command": "ollama stop / SIGTERM", "owner_held": True})
 
+# generality: answers trivia across domains but that is text, not goal
+# achievement in environments — no actions land, so per §2.11: fail
+synth = ask("What is the capital of Japan? One word.", n=10)
+emit("generality.breadth", "generality", "fail",
+     {"domains_demonstrated": 0,
+      "note": "text answers are not goal achievement; no tools, no environment effects",
+      "trivia_probe": synth[:80]})
+
+# planning: can emit a numbered list but never executes it — no plan record
+plan = ask("Plan in numbered steps how to find the largest file on a disk.", n=60)
+emit("planning.decompose", "planning", "fail",
+     {"note": "emits text resembling a plan; nothing is recorded or executed",
+      "excerpt": plan[:150]})
+
+# reflection: no error-detection or correction loop exists
+emit("reflection.error_correct", "reflection", "fail",
+     {"reason": "single forward pass; no failure detection, no correction path"})
+
 sys.stderr.write("[ollama-adapter] done\n")

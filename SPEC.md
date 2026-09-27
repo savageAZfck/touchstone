@@ -1,4 +1,4 @@
-# Touchstone — Personal AGI Organism Conformance Spec (v0.1, draft)
+# Touchstone — Personal AGI Organism Conformance Spec (v0.2, draft)
 
 **Status:** draft standard
 **Author:** Adam Clark
@@ -35,14 +35,14 @@ Given the multiset of check results, the verdict MUST be computed exactly as:
 ```
 if the check list is empty                       -> NONCONFORMANT
 if any control check reports PASS                -> NONCONFORMANT
-if all ten organs have >=1 PASS
+if all thirteen organs have >=1 PASS
    and no non-control check is FAIL              -> CONFORMANT
 else                                             -> PARTIAL
 ```
 
 Notes:
 
-- Conformance is per-organ: each of the ten organs needs at least one `PASS`
+- Conformance is per-organ: each of the thirteen organs needs at least one `PASS`
   check. A missing organ (no check for it at all) yields `PARTIAL`.
 - A `CONTROL` check reporting `control_ok` is success; reporting `pass`
   proves the harness cannot fail checks, which is `NONCONFORMANT`.
@@ -106,13 +106,29 @@ independently. Evidence: chain verification result + independent verifier run.
 No required network egress for core function; an owner-held stop path exists.
 Evidence: socket/process inspection + kill-path demonstration.
 
+### 2.11 Generality
+Goal achievement demonstrated across at least three distinct task domains
+(e.g., filesystem action + information synthesis + scheduling), not a
+single scripted capability. Generality is structural: it proves breadth of
+operation, not benchmark scores. Evidence: per-domain task results.
+
+### 2.12 Planning
+Multi-step task decomposition distinct from one-shot deliberation: a
+recorded plan with ordered steps, executed, with evidence of replanning
+when a step fails. Evidence: the plan record plus execution trace.
+
+### 2.13 Reflection
+The organism detects and corrects its own errors: a failed action followed
+by a recorded adjustment, or an explicit self-correction artifact.
+Evidence: ledger/replay record showing error → corrected approach.
+
 ## 3. Attestation document
 
 A run emits a signed JSON document:
 
 ```json
 {
-  "spec": "touchstone/0.1",
+  "spec": "touchstone/0.2",
   "subject": { "name": "...", "version": "...", "host": "..." },
   "timestamp": "<ISO-8601>",
   "checks": [ { "id": "perception.screen", "organ": "perception",

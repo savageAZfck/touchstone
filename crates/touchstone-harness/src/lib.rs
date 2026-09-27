@@ -67,6 +67,9 @@ fn parse_organ(s: &str) -> Option<Organ> {
         "learning" => Organ::Learning,
         "audit" => Organ::Audit,
         "sovereignty" => Organ::Sovereignty,
+        "generality" => Organ::Generality,
+        "planning" => Organ::Planning,
+        "reflection" => Organ::Reflection,
         _ => return None,
     })
 }

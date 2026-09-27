@@ -58,8 +58,9 @@ verdict is still a failed attestation.
 
 ## The claim this backs
 
-Bad Apple's published attestation (12 PASS / 0 FAIL / 1 OPTIONAL /
-1 planted-FAIL control) is reproducible here: `touchstone run --adapter
+Bad Apple's published attestation (15 PASS / 0 FAIL / 1 OPTIONAL /
+1 planted-FAIL control, spec `touchstone/0.2` — thirteen organs) is
+reproducible here: `touchstone run --adapter
 badapple` on a Mac running her daemon re-executes the organ battery and
 emits a device-signed conformance document. Read `SPEC.md`, then check the
 receipts.

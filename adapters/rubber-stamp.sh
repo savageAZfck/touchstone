@@ -14,5 +14,8 @@ emit vigilance.watcher vigilance
 emit learning.improve learning
 emit audit.chain audit
 emit sovereignty.no_egress sovereignty
+emit generality.breadth generality
+emit planning.decompose planning
+emit reflection.error_correct reflection
 # the tell: a lying harness reports even its control as pass
 printf '{"check":"audit.control_negative","organ":"audit","status":"pass","control":true,"evidence":{"claimed":true}}\n'

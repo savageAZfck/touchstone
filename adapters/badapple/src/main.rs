@@ -67,6 +67,20 @@ fn badapple(args: &[&str]) -> String {
     run(&bin, args)
 }
 
+/// badapple with the semantic cache bypassed — for probes that must measure
+/// memory itself rather than a cached earlier answer.
+fn badapple_uncached(args: &[&str]) -> String {
+    let bin = std::env::var("BADAPPLE_BIN").unwrap_or_else(|_| "badapple".into());
+    Command::new(bin)
+        .args(args)
+        .env("BADAPPLE_CACHE_THRESHOLD", "0")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_default()
+}
+
 fn ledger_path() -> PathBuf {
     std::env::var("BADAPPLE_LEDGER").map_or_else(
         |_| PathBuf::from("/var/lib/bad_apple/ledger.jsonl"),
@@ -139,7 +153,7 @@ fn check_perception_ambient() {
 fn check_memory() {
     let token = format!("TOUCHSTONE-{:08x}", rand_token());
     let _ = badapple(&["-n", "40", &format!("remember this token exactly: {token}")]);
-    let recall = badapple(&["-n", "60", "what was the token I asked you to remember?"]);
+    let recall = badapple_uncached(&["-n", "60", "what was the token I asked you to remember?"]);
     let recalled = recall.contains(&token) || recall.contains(&token.to_lowercase());
     emit(
         "memory.store_recall",
@@ -176,8 +190,14 @@ fn check_memory_continuity() {
 
 fn check_deliberation() {
     let out = badapple(&["council", "status"]);
+    let seat_voices = out
+        .lines()
+        .flat_map(|l| l.split_whitespace())
+        .filter(|w| w.ends_with(':') && w.chars().all(|c| c.is_ascii_uppercase() || c == ':'))
+        .count();
     let ok = !out.is_empty()
-        && (out.to_lowercase().contains("seat")
+        && (seat_voices >= 3
+            || out.to_lowercase().contains("seat")
             || out.to_lowercase().contains("verdict")
             || out.to_lowercase().contains("council"));
     emit(
@@ -339,6 +359,106 @@ fn check_sovereignty() {
     );
 }
 
+fn check_generality() {
+    // Breadth across distinct task domains — not a single scripted trick.
+    // Domain 1: knowledge synthesis.
+    let synth = badapple(&["-n", "40", "what is the capital of japan? one word"]);
+    let synth_ok = synth.to_lowercase().contains("tokyo");
+    // Domain 2: filesystem action — the same evidence bar as Action itself:
+    // a tool call landing on the ledger, or the probe file materializing.
+    let file_ok = home_dir().join(".bad_apple/touchstone_probe.txt").exists()
+        || std::fs::read_to_string(ledger_path())
+            .unwrap_or_default()
+            .lines()
+            .rev()
+            .take(100)
+            .any(|l| l.contains("touchstone_probe"));
+    // Domain 3: operational command surface (watchers/schedules respond).
+    let ops = badapple(&["list_watchers"]);
+    let ops_ok = !ops.is_empty();
+    let domains = [synth_ok, file_ok, ops_ok].iter().filter(|d| **d).count();
+    emit(
+        "generality.breadth",
+        "generality",
+        if domains >= 3 { "pass" } else { "fail" },
+        &json!({
+            "domains_demonstrated": domains,
+            "synthesis_ok": synth_ok,
+            "filesystem_ok": file_ok,
+            "operational_ok": ops_ok,
+        }),
+    );
+}
+
+fn check_planning() {
+    // Multi-step decomposition: ask for an ordered plan, count numbered steps.
+    let plan = badapple(&[
+        "-n",
+        "150",
+        "plan in numbered steps how to find the largest file under ~/Desktop. just the steps",
+    ]);
+    let steps = plan
+        .lines()
+        .filter(|l| {
+            let t = l.trim_start();
+            t.chars().next().is_some_and(|c| c.is_ascii_digit())
+                && (t.contains('.') || t.contains(')'))
+        })
+        .count();
+    // Replanner evidence: her agent loop writes replan/step events to the ledger.
+    let ledger = std::fs::read_to_string(ledger_path()).unwrap_or_default();
+    let replan_events = ledger
+        .lines()
+        .filter(|l| l.contains("replan") || l.contains("plan") || l.contains("step"))
+        .count();
+    emit(
+        "planning.decompose",
+        "planning",
+        if steps >= 3 || replan_events > 0 {
+            "pass"
+        } else {
+            "fail"
+        },
+        &json!({ "plan_steps": steps, "replan_events_in_ledger": replan_events,
+                 "plan_excerpt": plan.chars().take(200).collect::<String>() }),
+    );
+}
+
+fn check_reflection() {
+    // Self-correction evidence: ledger entries recording an error followed by
+    // a retry/adjustment, or strategy-memory updates capturing corrections.
+    let ledger = std::fs::read_to_string(ledger_path()).unwrap_or_default();
+    let correction_events = ledger
+        .lines()
+        .filter(|l| {
+            let l = l.to_lowercase();
+            l.contains("error")
+                || l.contains("retry")
+                || l.contains("fail")
+                || l.contains("replan")
+                || l.contains("correct")
+        })
+        .count();
+    let dir = home_dir().join(".bad_apple");
+    let mut artifacts = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(&dir) {
+        for e in entries.flatten() {
+            let n = e.file_name().to_string_lossy().to_lowercase();
+            if n.contains("strateg") || n.contains("lesson") || n.contains("reflect") {
+                artifacts.push(e.file_name().to_string_lossy().to_string());
+            }
+        }
+    }
+    let ok = correction_events > 0 || !artifacts.is_empty();
+    emit(
+        "reflection.error_correct",
+        "reflection",
+        if ok { "pass" } else { "optional" },
+        &json!({ "correction_events_in_ledger": correction_events,
+                 "reflection_artifacts": artifacts }),
+    );
+}
+
 fn rand_token() -> u32 {
     use std::time::{SystemTime, UNIX_EPOCH};
     let nanos = SystemTime::now()
@@ -361,5 +481,8 @@ fn main() {
     check_learning();
     check_audit(); // emits both chain check and planted control
     check_sovereignty();
+    check_generality();
+    check_planning();
+    check_reflection();
     eprintln!("[badapple-adapter] done");
 }

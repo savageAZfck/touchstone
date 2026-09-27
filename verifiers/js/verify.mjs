@@ -11,6 +11,7 @@
 const ORGANS = [
   "awake", "identity", "perception", "memory", "deliberation",
   "action", "vigilance", "learning", "audit", "sovereignty",
+  "generality", "planning", "reflection",
 ];
 
 // canonical JSON: recursively sort object keys, compact separators

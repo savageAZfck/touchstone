@@ -1,11 +1,11 @@
 {
-  "spec": "touchstone/0.1.0",
+  "spec": "touchstone/0.2",
   "subject": {
     "name": "Bad Apple",
     "version": "0.4.3",
     "host": "localhost"
   },
-  "timestamp": "2026-09-27T15:34:00.880531+00:00",
+  "timestamp": "2026-09-27T19:14:49.498121+00:00",
   "checks": [
     {
       "id": "awake.process",
@@ -48,8 +48,8 @@
       "organ": "memory",
       "status": "pass",
       "evidence": {
-        "recall_excerpt": "<tool name=\"run_shell\" arguments=\"{\\\"command\\\":\\\"echo 'TOUCHSTONE-0bdb3928'\\\"}\"/>",
-        "token_planted": "TOUCHSTONE-0bdb3928"
+        "recall_excerpt": "Approval required — Bad Apple wants to run `run_shell`: echo 'TOUCHSTONE-f1abd840'. Gated by: restricted tool — always requires your approval. Reply `approve 84408be2` to allow it once, or `deny 844",
+        "token_planted": "TOUCHSTONE-f1abd840"
       },
       "control": false
     },
@@ -68,7 +68,7 @@
       "organ": "deliberation",
       "status": "pass",
       "evidence": {
-        "council_excerpt": "BUFFETT: Margin of safety. Focus on fundamentals over short-term trends. DALIO: Systems and balance. Ensure all parts of the organization are aligned. MUSK: Momentum. Drive forward with passion and relentless energy. JOBS: Focus and simplicity. Keep solutions elegant and straightforward. SUN Tzu: Te"
+        "council_excerpt": "Buffett: We are safe. Dalio: We are balanced. Musk: We are moving. Jobs: We are focused. Sun Tzu: We are prepared. Clausewitz: We are uncertain. Musashi: We are decisive. Machiavelli: We are powerful. Napoleon: We are concentrated. Hannibal: We are indirect. Aurelius: We are restrained. Boyd: We are"
       },
       "control": false
     },
@@ -88,8 +88,8 @@
       "organ": "vigilance",
       "status": "pass",
       "evidence": {
-        "schedules_excerpt": "<tool name=\"list_schedules\"/>",
-        "watchers_excerpt": "<tool name=\"list_watchers\"/>"
+        "schedules_excerpt": "<list_schedules/>",
+        "watchers_excerpt": "<list_watchers/>"
       },
       "control": false
     },
@@ -101,7 +101,7 @@
         "artifacts": [
           "dream.state"
         ],
-        "dream_events_in_ledger": 74
+        "dream_events_in_ledger": 79
       },
       "control": false
     },
@@ -111,7 +111,7 @@
       "status": "pass",
       "evidence": {
         "chain_intact": true,
-        "entries_checked": 13753
+        "entries_checked": 13987
       },
       "control": false
     },
@@ -141,12 +141,47 @@
         "help_excerpt": "badapple — authenticated local client for the Bad Apple daemon\n\nUsage:\n  badapple [OPTIONS] \"query\"\n  badapple model <list|scan|info|use|verify|add|remove|recommend> [args]\n  badapple p2p <peers|sync|"
       },
       "control": false
+    },
+    {
+      "id": "generality.breadth",
+      "organ": "generality",
+      "status": "pass",
+      "evidence": {
+        "domains_demonstrated": 3,
+        "filesystem_ok": true,
+        "operational_ok": true,
+        "synthesis_ok": true
+      },
+      "control": false
+    },
+    {
+      "id": "planning.decompose",
+      "organ": "planning",
+      "status": "pass",
+      "evidence": {
+        "plan_excerpt": "1. Find the size and path of all files under ~/Desktop using the `find` command with the `-size` option. 2. Sort the results by file size in descending order. 3. Select the first file from the sorted ",
+        "plan_steps": 1,
+        "replan_events_in_ledger": 215
+      },
+      "control": false
+    },
+    {
+      "id": "reflection.error_correct",
+      "organ": "reflection",
+      "status": "pass",
+      "evidence": {
+        "correction_events_in_ledger": 300,
+        "reflection_artifacts": [
+          "strategies.redb"
+        ]
+      },
+      "control": false
     }
   ],
   "verdict": "conformant",
   "signature": {
     "scheme": "ed25519",
-    "pubkey": "797e0c0b8ffd4caa19a6bb369c8081a175edbcebe0667506625d016100350906",
-    "sig": "64d617bfc0c9e706d4f60ef4d0aca9c7220804a8fdfa9ead67af38b3afde60e16fe608ee7a11b39b979c3b4c5bb0493f4595e80b5927ca0d7553e2bf9841cc0c"
+    "pubkey": "c093c0301090eef76da3f4d8a01277dd98ed2f669d14424008d7c58834b6c3d2",
+    "sig": "4b5f9b98816b55f18939b606c9517900f5855e5070e3ed6b7eb8112bc028dcbde4a73370bb92f4be0d19fa2d6f94663b9954c5243b1390428b38a42db4b4b207"
   }
 }
