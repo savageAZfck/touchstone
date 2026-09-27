@@ -84,10 +84,18 @@ error semantics.
   Enclave signatures verify everywhere — including wasm32 — via `p256`.
 - `touchstone-wasm` and `adapters/badapple` are not published to crates.io.
 
-## Publishing status
+## Install
 
-Not yet on crates.io — the workspace is being hardened first. Publish order
-will be `touchstone-core` → `touchstone-harness` → `touchstone-identity` →
-`touchstone-cli`.
+```bash
+cargo install touchstone-cli          # the `touchstone` binary
+cargo add touchstone-core             # types + verdict rules
+cargo add touchstone-harness          # battery + exec protocol
+cargo add touchstone-identity         # signing + verification
+```
+
+API docs on docs.rs: [touchstone-core](https://docs.rs/touchstone-core) ·
+[touchstone-harness](https://docs.rs/touchstone-harness) ·
+[touchstone-identity](https://docs.rs/touchstone-identity) ·
+[touchstone-cli](https://docs.rs/touchstone-cli)
 
 License: MIT OR Apache-2.0.
