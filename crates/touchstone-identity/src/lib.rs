@@ -232,4 +232,20 @@ mod tests {
         d.signature.as_mut().unwrap().pubkey = b.public_hex();
         assert!(!verify_attestation(&d).unwrap());
     }
+
+    /// Real Secure Enclave roundtrip: generate a hardware-bound P-256 key,
+    /// sign, and verify through the portable p256 path. Only meaningful on
+    /// a Mac with an Enclave — this is the proof the feature isn't vapor.
+    #[test]
+    #[cfg(feature = "secure-enclave")]
+    fn enclave_sign_verify_roundtrip() {
+        let signer = crate::enclave::EnclaveSigner::generate()
+            .expect("Secure Enclave keygen failed — is this a Mac with T2/M-chip?");
+        let mut d = doc();
+        signer.sign_attestation(&mut d).expect("enclave sign failed");
+        let sig = d.signature.as_ref().unwrap();
+        assert_eq!(sig.scheme, "secp256r1-se");
+        assert_eq!(sig.pubkey.len(), 130); // uncompressed SEC1 point
+        assert!(verify_attestation(&d).unwrap());
+    }
 }
