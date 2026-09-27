@@ -4,22 +4,39 @@
 //! This crate deliberately has no filesystem, network, or process
 //! dependencies so it can compile to WASM and be shared by every verifier.
 
+#![forbid(unsafe_code)]
+
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+
+/// Version of the conformance spec this crate implements. Independent of
+/// crate semver — SPEC.md bumps only when the checklist or verdict rules
+/// change, not on every code release.
+pub const SPEC_VERSION: &str = "0.1";
 
 /// The organs a conformant organism must demonstrate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Organ {
+    /// Persistent process exists and reports liveness.
     Awake,
+    /// Organism declares what it is, bound to a device-held key.
     Identity,
+    /// Opt-in senses (screen, audio, clipboard, etc.) working end-to-end.
     Perception,
+    /// Store/recall of arbitrary state across time.
     Memory,
+    /// Recorded structured decision procedure before consequential action.
     Deliberation,
+    /// Tool executions landing on the audit record.
     Action,
+    /// Watchers/standing orders firing without a prompt.
     Vigilance,
+    /// Measurable self-improvement (adapters, strategy memory, etc.).
     Learning,
+    /// Hash-chained event log verifiable by a second implementation.
     Audit,
+    /// No required egress; an owner-held stop path exists.
     Sovereignty,
 }
 
@@ -43,7 +60,9 @@ impl Organ {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Status {
+    /// Evidence verified.
     Pass,
+    /// Evidence absent, invalid, or contradictory.
     Fail,
     /// Check intentionally skipped / not applicable to this subject.
     Optional,
@@ -56,7 +75,9 @@ pub enum Status {
 pub struct CheckResult {
     /// Dotted id, e.g. "perception.screen".
     pub id: String,
+    /// Which organ this check measures.
     pub organ: Organ,
+    /// Outcome of the check.
     pub status: Status,
     /// Free-form evidence payload — transcripts, hashes, ledger seq ranges.
     #[serde(default)]
@@ -82,8 +103,11 @@ pub enum Verdict {
 /// The subject under test.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subject {
+    /// Organism/implementation name.
     pub name: String,
+    /// Subject's own version string.
     pub version: String,
+    /// Host the run executed on.
     pub host: String,
 }
 
@@ -103,11 +127,15 @@ pub struct Signature {
 pub struct Attestation {
     /// Spec tag, e.g. "touchstone/0.1".
     pub spec: String,
+    /// What was measured.
     pub subject: Subject,
     /// ISO-8601 timestamp.
     pub timestamp: String,
+    /// Every check result the adapter produced.
     pub checks: Vec<CheckResult>,
+    /// Verdict claimed by the producer — recomputed on verify.
     pub verdict: Verdict,
+    /// Device-key signature over the canonical document hash.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<Signature>,
 }
@@ -166,6 +194,90 @@ pub fn document_hash(doc: &Attestation) -> [u8; 32] {
     let mut h = Sha256::new();
     h.update(canonical_bytes(doc));
     h.finalize().into()
+}
+
+/// Structural validation errors an attestation can carry even when it
+/// parses as JSON.
+#[derive(Debug)]
+pub enum ValidationError {
+    /// `spec` field missing or not a `touchstone/<version>` string.
+    BadSpec,
+    /// No checks present — nothing was actually measured.
+    NoChecks,
+    /// Two checks share an id, making the scoreboard ambiguous.
+    DuplicateCheckId(String),
+    /// Claimed verdict disagrees with the verdict recomputed from checks.
+    VerdictMismatch {
+        /// Verdict the document claims.
+        claimed: Verdict,
+        /// Verdict the check results actually produce.
+        actual: Verdict,
+    },
+    /// Signature present but malformed (bad hex, wrong length).
+    BadSignature,
+    /// Timestamp missing or not RFC3339-parseable.
+    BadTimestamp,
+}
+
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BadSpec => write!(f, "spec field missing or not touchstone/<version>"),
+            Self::NoChecks => write!(f, "attestation has no checks"),
+            Self::DuplicateCheckId(id) => write!(f, "duplicate check id: {id}"),
+            Self::VerdictMismatch { claimed, actual } => {
+                write!(f, "claimed verdict {claimed:?} != recomputed {actual:?}")
+            }
+            Self::BadSignature => write!(f, "signature malformed"),
+            Self::BadTimestamp => write!(f, "timestamp missing or not RFC3339"),
+        }
+    }
+}
+
+impl std::error::Error for ValidationError {}
+
+impl Attestation {
+    /// Validate structure independent of signature: spec tag, check
+    /// uniqueness, timestamp shape, and that the claimed verdict equals the
+    /// verdict the checks actually produce. Does NOT verify the signature —
+    /// that is the identity crate's job.
+    pub fn validate(&self) -> Result<(), Vec<ValidationError>> {
+        let mut errs = Vec::new();
+        if !self.spec.starts_with("touchstone/") || self.spec.len() <= "touchstone/".len() {
+            errs.push(ValidationError::BadSpec);
+        }
+        if self.checks.is_empty() {
+            errs.push(ValidationError::NoChecks);
+        }
+        let mut seen = std::collections::HashSet::new();
+        for c in &self.checks {
+            if !seen.insert(&c.id) {
+                errs.push(ValidationError::DuplicateCheckId(c.id.clone()));
+            }
+        }
+        let actual = verdict_for(&self.checks);
+        if actual != self.verdict {
+            errs.push(ValidationError::VerdictMismatch {
+                claimed: self.verdict,
+                actual,
+            });
+        }
+        if let Some(sig) = &self.signature {
+            let hex_ok =
+                |s: &str, n: usize| s.len() == n && s.chars().all(|c| c.is_ascii_hexdigit());
+            if !hex_ok(&sig.pubkey, 64) || !hex_ok(&sig.sig, 128) {
+                errs.push(ValidationError::BadSignature);
+            }
+        }
+        if chrono::DateTime::parse_from_rfc3339(&self.timestamp).is_err() {
+            errs.push(ValidationError::BadTimestamp);
+        }
+        if errs.is_empty() {
+            Ok(())
+        } else {
+            Err(errs)
+        }
+    }
 }
 
 /// Serialize a JSON value with all object keys sorted (canonical form).

@@ -8,10 +8,14 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
+keywords = ["conformance", "attestation", "spec", "agi", "verification"]
+categories = ["data-structures", "parser-implementations"]
+readme = "../../README.md"
 
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
+chrono = { workspace = true }
 thiserror = { workspace = true }

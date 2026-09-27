@@ -28,6 +28,38 @@ Every check yields exactly one status:
 A run's verdict is `CONFORMANT` when every required check is `PASS` and every
 `CONTROL` check reports `FAIL` with status `control_ok`.
 
+### 1.1 Deterministic verdict computation
+
+Given the multiset of check results, the verdict MUST be computed exactly as:
+
+```
+if the check list is empty                       -> NONCONFORMANT
+if any control check reports PASS                -> NONCONFORMANT
+if all ten organs have >=1 PASS
+   and no non-control check is FAIL              -> CONFORMANT
+else                                             -> PARTIAL
+```
+
+Notes:
+
+- Conformance is per-organ: each of the ten organs needs at least one `PASS`
+  check. A missing organ (no check for it at all) yields `PARTIAL`.
+- A `CONTROL` check reporting `control_ok` is success; reporting `pass`
+  proves the harness cannot fail checks, which is `NONCONFORMANT`.
+- `OPTIONAL` checks never block conformance — an organ passes on its `PASS`
+  checks alone.
+- Verdict is a pure function of check results. Two conformant implementations
+  MUST produce identical verdicts from identical check lists.
+
+### 1.2 Spec versioning
+
+The spec version (`touchstone/<major.minor>`) is independent of any
+implementation's semver. The minor version bumps when checks are added or
+verdict rules change; major bumps on incompatible format changes. An
+attestation's `spec` field records which version produced it. Verifiers MUST
+accept `touchstone/0.x` documents and SHOULD warn on unknown majors rather
+than silently accept.
+
 ## 2. Required organs
 
 An organism MUST demonstrate each of the following, with evidence the harness
@@ -92,25 +124,86 @@ A run emits a signed JSON document:
 }
 ```
 
-The signature covers the canonical serialization (sorted keys, UTF-8) of
-everything except the `signature` field.
+The signature covers the canonical serialization of everything except the
+`signature` field.
+
+### 3.1 Canonicalization
+
+The signed document is canonicalized before hashing. Rules:
+
+1. Remove the `signature` field entirely.
+2. Serialize to JSON with **all object keys sorted lexicographically**, at
+   every depth, recursively.
+3. No whitespace: no spaces after `:` or `,`, no indentation, no trailing
+   newline.
+4. Strings are UTF-8, escaped per JSON spec (shortest form).
+5. Numbers serialize in shortest round-trip form (`1` not `1.0`).
+6. The hash committed to the signature is `SHA-256` of the canonical bytes.
+
+Any implementation producing the same canonical bytes from the same document
+is conformant; byte differences (e.g. key order) mean a different hash and a
+broken signature check, which is the intended behavior.
 
 ## 4. Verification
 
-A verifier MUST: parse the document, recompute the canonical hash, verify the
-signature against the embedded pubkey, re-evaluate verdict rules, and confirm
-every CONTROL check reports `control_ok`. An independent verifier MUST NOT
-share code with the subject. This repo ships a Rust verifier and an
-independent JavaScript verifier.
+A verifier MUST, in order:
+
+1. Parse the document and reject malformed JSON.
+2. Structurally validate: `spec` is `touchstone/<version>`, timestamp is
+   RFC3339, check ids are unique, `signature` fields are well-formed hex.
+3. **Recompute the verdict from the check list** and reject if it differs
+   from the claimed `verdict` — a valid signature over a false verdict is
+   still a failed attestation.
+4. Recompute the canonical hash and verify the signature against the
+   embedded pubkey.
+5. Confirm every CONTROL check reports `control_ok`.
+
+An independent verifier MUST NOT share code with the subject. This repo
+ships a Rust verifier (`touchstone verify`) and an independent JavaScript
+verifier (`verifiers/js/verify.mjs`) with zero shared code.
 
 ## 5. Adapter protocol
 
-Adapters are executables printing newline-delimited JSON on stdout:
+Adapters are executables the harness spawns once per run. The adapter prints
+**newline-delimited JSON** on stdout, one check result per line:
 
 ```
 {"check":"<id>","organ":"<organ>","status":"pass|fail|optional","evidence":{...}}
 {"check":"planted_negative","organ":"audit","status":"fail","control":true,"evidence":{...}}
 ```
+
+### 5.1 Request/response model
+
+One process spawn = one full battery. The harness sends nothing on stdin;
+the adapter emits all check results then exits. There is no per-check
+request — the adapter is the source of truth about what it measured.
+
+### 5.2 Output semantics
+
+- Each line MUST be a complete JSON object (NDJSON — one value per line).
+- Lines that are empty or do not start with `{` MUST be ignored (log
+  chatter is permitted on stdout).
+- Lines that fail JSON parsing MUST be ignored (treated as chatter).
+- Lines with unknown `organ` or `status` values MUST be ignored.
+- `evidence` is a free-form object — the harness stores it opaquely.
+- stderr is inherited by the harness for diagnostics; it carries no
+  protocol meaning.
+
+### 5.3 Termination and failure
+
+- The adapter MUST exit 0 when finished. Nonzero exit after emitting
+  results is a harness error, not a check failure.
+- The harness enforces a wall-clock **timeout** (default 600 s). An adapter
+  exceeding it is killed; the run is recorded as a harness error.
+- An adapter emitting zero parseable check results is a harness error
+  (`NoResults`), distinct from a run of all-fail checks.
+
+### 5.4 Duplicate and unknown checks
+
+Duplicate check ids are protocol errors — the attestation validator rejects
+them. Check ids outside the spec's named set are permitted: they appear on
+the scoreboard but do not affect the verdict, letting subjects report extra
+organs without breaking conformant scoring.
 
 Any language. One binary per subject. The harness drives it, collects
 results, scores the run, and produces the attestation document for signing.

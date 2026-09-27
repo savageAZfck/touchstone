@@ -8,17 +8,28 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
+keywords = ["signing", "secure-enclave", "ed25519", "attestation", "identity"]
+categories = ["cryptography", "authentication"]
+readme = "../../README.md"
 
 [features]
 default = []
 secure-enclave = ["dep:security-framework"]
 
 [dependencies]
-touchstone-core = { path = "../touchstone-core" }
+touchstone-core = { path = "../touchstone-core", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 ed25519-dalek = { workspace = true }
-rand = { workspace = true }
+p256 = { workspace = true }
 hex = { workspace = true }
 thiserror = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rand = { workspace = true }
 security-framework = { version = "3", optional = true }
+
+# p256 pulls getrandom transitively; wasm needs the wasm-bindgen js backend.
+# Verification never calls it — this is a compile shim.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }

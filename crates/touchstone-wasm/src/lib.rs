@@ -1,5 +1,7 @@
 //! touchstone-wasm: verify attestations in the browser.
 
+#![forbid(unsafe_code)]
+
 use touchstone_core::{document_hash, verdict_for, Attestation};
 use touchstone_identity::verify_attestation;
 use wasm_bindgen::prelude::*;

@@ -5,12 +5,14 @@
 //! `touchstone attest`   signs an attestation with a device key
 //! `touchstone verify`   verifies signature + verdict rules on an attestation
 
+#![forbid(unsafe_code)]
+
 use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use touchstone_core::{document_hash, Attestation, Organ};
+use touchstone_core::{document_hash, verdict_for, Attestation, Organ, Status};
 use touchstone_harness::{attest, ExecAdapter, SPEC_CHECKS};
 use touchstone_identity::{verify_attestation, Ed25519Signer};
 
@@ -62,6 +64,11 @@ enum Cmd {
     /// Verify a signed attestation: signature + verdict rules.
     Verify {
         /// The signed attestation JSON.
+        file: PathBuf,
+    },
+    /// Pretty-print an attestation's organ scoreboard.
+    Explore {
+        /// The attestation JSON (signed or unsigned).
         file: PathBuf,
     },
 }
@@ -191,6 +198,13 @@ fn cmd_attest(file: PathBuf, key: Option<String>, out: Option<PathBuf>) -> ExitC
             return ExitCode::FAILURE;
         }
     };
+    if doc.signature.is_some() {
+        eprintln!("warning: attestation already signed — replacing signature");
+    }
+    if doc.checks.is_empty() {
+        eprintln!("error: attestation has no checks — nothing to attest");
+        return ExitCode::FAILURE;
+    }
     let signer = match key {
         Some(k) => match Ed25519Signer::from_hex(&k) {
             Ok(s) => s,
@@ -233,11 +247,27 @@ fn cmd_verify(file: PathBuf) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+    // Structural validation first — malformed docs die here regardless of
+    // whether a valid signature happens to cover them.
+    if let Err(errs) = doc.validate() {
+        for e in &errs {
+            eprintln!("invalid: {e}");
+        }
+        return ExitCode::FAILURE;
+    }
+    let recomputed = verdict_for(&doc.checks);
     match verify_attestation(&doc) {
         Ok(true) => {
             println!("signature: VALID");
             println!("doc hash:  {}", hex::encode(document_hash(&doc)));
             println!("verdict:   {:?}", doc.verdict);
+            if recomputed != doc.verdict {
+                println!(
+                    "warning:   claimed verdict {:?} != recomputed {:?}",
+                    doc.verdict, recomputed
+                );
+                return ExitCode::FAILURE;
+            }
             let (pass, fail, opt, ctrl) =
                 doc.checks
                     .iter()
@@ -279,5 +309,56 @@ fn main() -> ExitCode {
         } => cmd_run(&adapter, subject, subject_version, adapter_args, out),
         Cmd::Attest { file, key, out } => cmd_attest(file, key, out),
         Cmd::Verify { file } => cmd_verify(file),
+        Cmd::Explore { file } => cmd_explore(file),
     }
+}
+
+fn cmd_explore(file: PathBuf) -> ExitCode {
+    let text = match fs::read_to_string(&file) {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("error reading {}: {e}", file.display());
+            return ExitCode::FAILURE;
+        }
+    };
+    let doc: Attestation = match serde_json::from_str(&text) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("error parsing attestation: {e}");
+            return ExitCode::FAILURE;
+        }
+    };
+    println!(
+        "{} v{} @ {} — spec {}",
+        doc.subject.name, doc.subject.version, doc.subject.host, doc.spec
+    );
+    println!("timestamp: {}", doc.timestamp);
+    println!("verdict:   {:?}", doc.verdict);
+    println!();
+    for organ in Organ::ALL {
+        let organ_checks: Vec<_> = doc.checks.iter().filter(|c| c.organ == organ).collect();
+        if organ_checks.is_empty() {
+            continue;
+        }
+        println!("  {organ:?}");
+        for c in organ_checks {
+            let mark = match c.status {
+                Status::Pass => "PASS",
+                Status::Fail => "FAIL",
+                Status::Optional => "OPT ",
+                Status::ControlOk => "CTRL",
+            };
+            println!("    [{mark}] {}", c.id);
+        }
+    }
+    println!();
+    match &doc.signature {
+        Some(s) => println!(
+            "signature: {} (pub {}...)",
+            s.scheme,
+            &s.pubkey[..s.pubkey.len().min(16)]
+        ),
+        None => println!("signature: unsigned"),
+    }
+    ExitCode::SUCCESS
 }

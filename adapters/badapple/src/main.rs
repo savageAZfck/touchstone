@@ -15,6 +15,8 @@
 //!   - chain verify + planted control    (audit)
 //!   - egress scan + kill switch         (sovereignty)
 
+#![forbid(unsafe_code)]
+
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;

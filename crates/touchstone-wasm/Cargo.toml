@@ -8,13 +8,14 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
+publish = false
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-touchstone-core = { path = "../touchstone-core" }
-touchstone-identity = { path = "../touchstone-identity" }
+touchstone-core = { path = "../touchstone-core", version = "0.1.0" }
+touchstone-identity = { path = "../touchstone-identity", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 hex = { workspace = true }

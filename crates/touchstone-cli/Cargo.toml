@@ -8,18 +8,21 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
+keywords = ["cli", "conformance", "attestation", "agi", "audit"]
+categories = ["command-line-utilities", "development-tools::testing"]
+readme = "../../README.md"
 
 [[bin]]
 name = "touchstone"
 path = "src/main.rs"
 
 [dependencies]
-touchstone-core = { path = "../touchstone-core" }
-touchstone-harness = { path = "../touchstone-harness" }
-touchstone-identity = { path = "../touchstone-identity" }
+touchstone-core = { path = "../touchstone-core", version = "0.1.0" }
+touchstone-harness = { path = "../touchstone-harness", version = "0.1.0" }
+touchstone-identity = { path = "../touchstone-identity", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 clap = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
-chrono = "0.4"
+chrono = { workspace = true }
