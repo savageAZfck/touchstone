@@ -58,10 +58,15 @@ verdict is still a failed attestation.
 
 ## The claim this backs
 
-Bad Apple's published attestation (45 PASS / 1 planted-FAIL control /
-1 OPTIONAL) is reproducible here: `touchstone run --adapter badapple` on a
-Mac running her daemon re-executes the organ battery and emits a
-device-signed conformance document. Read `SPEC.md`, then check the receipts.
+Bad Apple's published attestation (12 PASS / 0 FAIL / 1 OPTIONAL /
+1 planted-FAIL control) is reproducible here: `touchstone run --adapter
+badapple` on a Mac running her daemon re-executes the organ battery and
+emits a device-signed conformance document. Read `SPEC.md`, then check the
+receipts.
+
+The public board lives in `SCOREBOARD.md` — Bad Apple (CONFORMANT) next to
+a raw local LLM (PARTIAL) and a deliberately dishonest harness
+(NONCONFORMANT), all signed under one identity.
 
 ## Adapter protocol
 
