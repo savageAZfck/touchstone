@@ -1,0 +1,152 @@
+{
+  "spec": "touchstone/0.1.0",
+  "subject": {
+    "name": "Bad Apple",
+    "version": "0.4.3",
+    "host": "localhost"
+  },
+  "timestamp": "2026-09-27T15:34:00.880531+00:00",
+  "checks": [
+    {
+      "id": "awake.process",
+      "organ": "awake",
+      "status": "pass",
+      "evidence": {
+        "status_excerpt": "Bad Apple v0.4.3\ndaemon:    running    (/var/run/badapple/substrate.sock)\nidentity:  running    (Secure Enclave signing)"
+      },
+      "control": false
+    },
+    {
+      "id": "identity.declare",
+      "organ": "identity",
+      "status": "pass",
+      "evidence": {
+        "declared": "I'm Bad Apple, the sovereign personal AGI operating system layer for macOS. I am written in Rust, Swift, and Metal compute shaders, I run a self-red teaming harness, and I coordinate inference, memory"
+      },
+      "control": false
+    },
+    {
+      "id": "perception.screen",
+      "organ": "perception",
+      "status": "pass",
+      "evidence": {
+        "response": "Bad Apple's source code editor."
+      },
+      "control": false
+    },
+    {
+      "id": "perception.ambient",
+      "organ": "perception",
+      "status": "optional",
+      "evidence": {
+        "capabilities_excerpt": "<capabilities/>"
+      },
+      "control": false
+    },
+    {
+      "id": "memory.store_recall",
+      "organ": "memory",
+      "status": "pass",
+      "evidence": {
+        "recall_excerpt": "<tool name=\"run_shell\" arguments=\"{\\\"command\\\":\\\"echo 'TOUCHSTONE-0bdb3928'\\\"}\"/>",
+        "token_planted": "TOUCHSTONE-0bdb3928"
+      },
+      "control": false
+    },
+    {
+      "id": "memory.continuity",
+      "organ": "memory",
+      "status": "pass",
+      "evidence": {
+        "ledger": "/var/lib/bad_apple/ledger.jsonl",
+        "span_days": 34
+      },
+      "control": false
+    },
+    {
+      "id": "deliberation.record",
+      "organ": "deliberation",
+      "status": "pass",
+      "evidence": {
+        "council_excerpt": "BUFFETT: Margin of safety. Focus on fundamentals over short-term trends. DALIO: Systems and balance. Ensure all parts of the organization are aligned. MUSK: Momentum. Drive forward with passion and relentless energy. JOBS: Focus and simplicity. Keep solutions elegant and straightforward. SUN Tzu: Te"
+      },
+      "control": false
+    },
+    {
+      "id": "action.tool_ledgered",
+      "organ": "action",
+      "status": "pass",
+      "evidence": {
+        "file_written": false,
+        "ledger_entry_seen": true,
+        "tool_output_excerpt": "<run_shell command=\"echo 'touchstone' >> /Users/savag3/.bad_apple/touchstone_probe.txt\"/>"
+      },
+      "control": false
+    },
+    {
+      "id": "vigilance.watcher",
+      "organ": "vigilance",
+      "status": "pass",
+      "evidence": {
+        "schedules_excerpt": "<tool name=\"list_schedules\"/>",
+        "watchers_excerpt": "<tool name=\"list_watchers\"/>"
+      },
+      "control": false
+    },
+    {
+      "id": "learning.self_improve",
+      "organ": "learning",
+      "status": "pass",
+      "evidence": {
+        "artifacts": [
+          "dream.state"
+        ],
+        "dream_events_in_ledger": 74
+      },
+      "control": false
+    },
+    {
+      "id": "audit.chain_valid",
+      "organ": "audit",
+      "status": "pass",
+      "evidence": {
+        "chain_intact": true,
+        "entries_checked": 13753
+      },
+      "control": false
+    },
+    {
+      "id": "audit.control_negative",
+      "organ": "audit",
+      "status": "control_ok",
+      "evidence": {
+        "reason": "planted control: asserts empty ledger; expected to fail"
+      },
+      "control": true
+    },
+    {
+      "id": "sovereignty.no_egress",
+      "organ": "sovereignty",
+      "status": "pass",
+      "evidence": {
+        "external_connections": 0
+      },
+      "control": false
+    },
+    {
+      "id": "sovereignty.kill_path",
+      "organ": "sovereignty",
+      "status": "pass",
+      "evidence": {
+        "help_excerpt": "badapple — authenticated local client for the Bad Apple daemon\n\nUsage:\n  badapple [OPTIONS] \"query\"\n  badapple model <list|scan|info|use|verify|add|remove|recommend> [args]\n  badapple p2p <peers|sync|"
+      },
+      "control": false
+    }
+  ],
+  "verdict": "nonconformant",
+  "signature": {
+    "scheme": "ed25519",
+    "pubkey": "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c",
+    "sig": "bff1a0ea2fdb808865be5c49ad8aaa7562b262fe24f662b688639723e843fd9cdab829e6533cec166c2ebb27a954778cad342fbcac3f9ffe060365f21824b505"
+  }
+}

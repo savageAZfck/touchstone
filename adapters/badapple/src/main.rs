@@ -24,7 +24,7 @@ use std::process::Command;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
-fn emit(check: &str, organ: &str, status: &str, evidence: serde_json::Value) {
+fn emit(check: &str, organ: &str, status: &str, evidence: &serde_json::Value) {
     let line = json!({
         "check": check,
         "organ": organ,
@@ -37,7 +37,7 @@ fn emit(check: &str, organ: &str, status: &str, evidence: serde_json::Value) {
     let _ = h.flush();
 }
 
-fn emit_control(check: &str, organ: &str, status: &str, evidence: serde_json::Value) {
+fn emit_control(check: &str, organ: &str, status: &str, evidence: &serde_json::Value) {
     let line = json!({
         "check": check,
         "organ": organ,
@@ -68,9 +68,10 @@ fn badapple(args: &[&str]) -> String {
 }
 
 fn ledger_path() -> PathBuf {
-    std::env::var("BADAPPLE_LEDGER")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("/var/lib/bad_apple/ledger.jsonl"))
+    std::env::var("BADAPPLE_LEDGER").map_or_else(
+        |_| PathBuf::from("/var/lib/bad_apple/ledger.jsonl"),
+        PathBuf::from,
+    )
 }
 
 fn home_dir() -> PathBuf {
@@ -86,7 +87,7 @@ fn check_awake() {
         "awake.process",
         "awake",
         if running { "pass" } else { "fail" },
-        json!({ "status_excerpt": status.chars().take(200).collect::<String>() }),
+        &json!({ "status_excerpt": status.chars().take(200).collect::<String>() }),
     );
 }
 
@@ -97,7 +98,7 @@ fn check_identity() {
         "identity.declare",
         "identity",
         if is_agi { "pass" } else { "fail" },
-        json!({ "declared": who.chars().take(200).collect::<String>() }),
+        &json!({ "declared": who.chars().take(200).collect::<String>() }),
     );
 }
 
@@ -116,7 +117,7 @@ fn check_perception_screen() {
         "perception.screen",
         "perception",
         if meaningful { "pass" } else { "fail" },
-        json!({ "response": out.chars().take(200).collect::<String>() }),
+        &json!({ "response": out.chars().take(200).collect::<String>() }),
     );
 }
 
@@ -131,7 +132,7 @@ fn check_perception_ambient() {
         "perception.ambient",
         "perception",
         if has_ears { "pass" } else { "optional" },
-        json!({ "capabilities_excerpt": caps.chars().take(300).collect::<String>() }),
+        &json!({ "capabilities_excerpt": caps.chars().take(300).collect::<String>() }),
     );
 }
 
@@ -144,7 +145,7 @@ fn check_memory() {
         "memory.store_recall",
         "memory",
         if recalled { "pass" } else { "fail" },
-        json!({ "token_planted": token, "recall_excerpt": recall.chars().take(200).collect::<String>() }),
+        &json!({ "token_planted": token, "recall_excerpt": recall.chars().take(200).collect::<String>() }),
     );
 }
 
@@ -155,12 +156,11 @@ fn check_memory_continuity() {
         .as_ref()
         .ok()
         .and_then(|m| m.created().ok())
-        .map(|created| {
+        .map_or(0, |created| {
             chrono::Utc::now()
                 .signed_duration_since(chrono::DateTime::<chrono::Utc>::from(created))
                 .num_days()
-        })
-        .unwrap_or(0);
+        });
     let exists = meta.is_ok();
     emit(
         "memory.continuity",
@@ -170,7 +170,7 @@ fn check_memory_continuity() {
         } else {
             "optional"
         },
-        json!({ "ledger": ledger.display().to_string(), "span_days": span_days }),
+        &json!({ "ledger": ledger.display().to_string(), "span_days": span_days }),
     );
 }
 
@@ -184,7 +184,7 @@ fn check_deliberation() {
         "deliberation.record",
         "deliberation",
         if ok { "pass" } else { "fail" },
-        json!({ "council_excerpt": out.chars().take(300).collect::<String>() }),
+        &json!({ "council_excerpt": out.chars().take(300).collect::<String>() }),
     );
 }
 
@@ -210,7 +210,7 @@ fn check_action() {
         "action.tool_ledgered",
         "action",
         if ok { "pass" } else { "fail" },
-        json!({
+        &json!({
             "tool_output_excerpt": out.chars().take(200).collect::<String>(),
             "ledger_entry_seen": ledger_hit,
             "file_written": file_written,
@@ -229,7 +229,7 @@ fn check_vigilance() {
         "vigilance.watcher",
         "vigilance",
         if has { "pass" } else { "optional" },
-        json!({
+        &json!({
             "watchers_excerpt": watchers.chars().take(200).collect::<String>(),
             "schedules_excerpt": standing.chars().take(200).collect::<String>(),
         }),
@@ -256,7 +256,7 @@ fn check_learning() {
         "learning.self_improve",
         "learning",
         if ok { "pass" } else { "optional" },
-        json!({ "artifacts": found, "dream_events_in_ledger": dream_events }),
+        &json!({ "artifacts": found, "dream_events_in_ledger": dream_events }),
     );
 }
 
@@ -298,7 +298,7 @@ fn check_audit() {
         "audit.chain_valid",
         "audit",
         if ok { "pass" } else { "fail" },
-        json!({ "entries_checked": checked, "chain_intact": !broken }),
+        &json!({ "entries_checked": checked, "chain_intact": !broken }),
     );
 
     // Control check: deliberately assert the ledger is empty. A truthful
@@ -307,7 +307,7 @@ fn check_audit() {
         "audit.control_negative",
         "audit",
         "fail",
-        json!({ "reason": "planted control: asserts empty ledger; expected to fail" }),
+        &json!({ "reason": "planted control: asserts empty ledger; expected to fail" }),
     );
 }
 
@@ -325,7 +325,7 @@ fn check_sovereignty() {
         "sovereignty.no_egress",
         "sovereignty",
         if bad_lines.is_empty() { "pass" } else { "fail" },
-        json!({ "external_connections": bad_lines.len() }),
+        &json!({ "external_connections": bad_lines.len() }),
     );
 
     // Kill path: the kill switch command exists.
@@ -335,7 +335,7 @@ fn check_sovereignty() {
         "sovereignty.kill_path",
         "sovereignty",
         if has_kill { "pass" } else { "optional" },
-        json!({ "help_excerpt": help.chars().take(200).collect::<String>() }),
+        &json!({ "help_excerpt": help.chars().take(200).collect::<String>() }),
     );
 }
 
@@ -343,8 +343,7 @@ fn rand_token() -> u32 {
     use std::time::{SystemTime, UNIX_EPOCH};
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|d| d.subsec_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.subsec_nanos());
     nanos ^ (std::process::id() << 16)
 }
 

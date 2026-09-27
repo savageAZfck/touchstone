@@ -1,5 +1,9 @@
 # touchstone
 
+[![ci](https://github.com/savageAZfck/touchstone/actions/workflows/ci.yml/badge.svg)](https://github.com/savageAZfck/touchstone/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
+[![Spec](https://img.shields.io/badge/spec-v0.1-purple.svg)](SPEC.md)
+
 The verify-don't-trust toolkit for personal AGI claims.
 
 A touchstone is the stone used to test gold — the original instrument for

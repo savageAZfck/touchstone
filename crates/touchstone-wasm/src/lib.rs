@@ -7,8 +7,11 @@ use touchstone_identity::verify_attestation;
 use wasm_bindgen::prelude::*;
 
 /// Verify a signed attestation JSON string. Returns a JSON verdict object:
-/// { ok, signature_valid, verdict, checks, doc_hash, error? }
+/// `{ ok, signature_valid, verdict, checks, doc_hash, error? }`.
+/// Runs full spec §4: structural validation, verdict recomputation, then
+/// signature verification.
 #[wasm_bindgen]
+#[must_use]
 pub fn verify_attestation_json(json: &str) -> String {
     let doc: Attestation = match serde_json::from_str(json) {
         Ok(d) => d,
@@ -16,6 +19,13 @@ pub fn verify_attestation_json(json: &str) -> String {
             return serde_json::json!({"ok": false, "error": format!("parse: {e}")}).to_string();
         }
     };
+    if let Err(errs) = doc.validate() {
+        return serde_json::json!({
+            "ok": false,
+            "error": format!("invalid: {}", errs.iter().map(ToString::to_string).collect::<Vec<_>>().join("; ")),
+        })
+        .to_string();
+    }
     let sig_ok = verify_attestation(&doc).unwrap_or(false);
     let recomputed = verdict_for(&doc.checks);
     let verdict_consistent = recomputed == doc.verdict;

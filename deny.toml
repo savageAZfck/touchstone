@@ -1,0 +1,38 @@
+# cargo-deny configuration: supply-chain gate for the workspace.
+# Run: cargo deny check
+
+[advisories]
+# Fail on any published vulnerability in the dep tree.
+yanked = "deny"
+ignore = []
+
+[licenses]
+# The tree is MIT OR Apache-2.0; deps must be permissive too.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "MPL-2.0",
+]
+confidence-threshold = 0.8
+
+[bans]
+# Multiple versions of the same crate = code we ship twice; warn, don't
+# fail — transitive deps make some dupes unavoidable.
+multiple-versions = "warn"
+wildcards = "deny"
+deny = []
+skip = []
+
+[sources]
+# Only crates.io — no git deps, no private registries on the publish path.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

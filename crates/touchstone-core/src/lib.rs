@@ -142,11 +142,12 @@ pub struct Attestation {
 
 /// Compute the verdict for a set of check results.
 ///
-/// - `Conformant`: every organ has >=1 PASS, no required check FAILed,
-///   every control check reported ControlOk (i.e. it failed as designed).
+/// - `Conformant`: every organ has >=1 `PASS`, no required check `FAIL`ed,
+///   every control check reported `ControlOk` (i.e. it failed as designed).
 /// - `Nonconformant`: a control check passed (instrumentation can't be
 ///   trusted) or the run produced no checks at all.
 /// - `Partial`: anything else.
+#[must_use]
 pub fn verdict_for(checks: &[CheckResult]) -> Verdict {
     if checks.is_empty() {
         return Verdict::Nonconformant;
@@ -181,6 +182,7 @@ pub fn verdict_for(checks: &[CheckResult]) -> Verdict {
 
 /// Canonical serialization of an attestation for signing: the JSON with the
 /// signature field removed, keys emitted in sorted order.
+#[must_use]
 pub fn canonical_bytes(doc: &Attestation) -> Vec<u8> {
     let mut v = serde_json::to_value(doc).expect("attestation serializes");
     if let Some(obj) = v.as_object_mut() {
@@ -190,6 +192,7 @@ pub fn canonical_bytes(doc: &Attestation) -> Vec<u8> {
 }
 
 /// SHA-256 of the canonical document — what signatures cover.
+#[must_use]
 pub fn document_hash(doc: &Attestation) -> [u8; 32] {
     let mut h = Sha256::new();
     h.update(canonical_bytes(doc));

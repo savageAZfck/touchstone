@@ -8,7 +8,7 @@
 #![forbid(unsafe_code)]
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
@@ -108,14 +108,15 @@ fn which_in_path(name: &str) -> Result<String, ()> {
 fn cmd_spec() {
     println!(
         "touchstone conformance checklist (spec v{})",
-        env!("CARGO_PKG_VERSION")
+        touchstone_core::SPEC_VERSION
     );
     println!();
     let mut by_organ: Vec<(Organ, Vec<(&str, &str)>)> = Vec::new();
     for (id, organ, desc) in SPEC_CHECKS {
-        match by_organ.iter_mut().find(|(o, _)| o == organ) {
-            Some((_, v)) => v.push((id, desc)),
-            None => by_organ.push((*organ, vec![(id, desc)])),
+        if let Some((_, v)) = by_organ.iter_mut().find(|(o, _)| o == organ) {
+            v.push((id, desc));
+        } else {
+            by_organ.push((*organ, vec![(id, desc)]));
         }
     }
     for (organ, checks) in by_organ {
@@ -183,8 +184,8 @@ fn cmd_run(
     }
 }
 
-fn cmd_attest(file: PathBuf, key: Option<String>, out: Option<PathBuf>) -> ExitCode {
-    let text = match fs::read_to_string(&file) {
+fn cmd_attest(file: &Path, key: Option<&str>, out: Option<PathBuf>) -> ExitCode {
+    let text = match fs::read_to_string(file) {
         Ok(t) => t,
         Err(e) => {
             eprintln!("error reading {}: {e}", file.display());
@@ -205,21 +206,19 @@ fn cmd_attest(file: PathBuf, key: Option<String>, out: Option<PathBuf>) -> ExitC
         eprintln!("error: attestation has no checks — nothing to attest");
         return ExitCode::FAILURE;
     }
-    let signer = match key {
-        Some(k) => match Ed25519Signer::from_hex(&k) {
-            Ok(s) => s,
-            Err(_) => {
-                eprintln!("error: --key must be 32-byte hex");
-                return ExitCode::FAILURE;
-            }
-        },
-        None => {
-            let s = Ed25519Signer::generate();
-            eprintln!("[touchstone] ephemeral key generated: {}", s.public_hex());
-            eprintln!("[touchstone] save the secret if you want stable identity:");
-            eprintln!("  {}", s.secret_hex());
+    let signer = if let Some(k) = key {
+        if let Ok(s) = Ed25519Signer::from_hex(k) {
             s
+        } else {
+            eprintln!("error: --key must be 32-byte hex");
+            return ExitCode::FAILURE;
         }
+    } else {
+        let s = Ed25519Signer::generate();
+        eprintln!("[touchstone] ephemeral key generated: {}", s.public_hex());
+        eprintln!("[touchstone] save the secret if you want stable identity:");
+        eprintln!("  {}", s.secret_hex());
+        s
     };
     signer.sign_attestation(&mut doc);
     let json = serde_json::to_string_pretty(&doc).unwrap();
@@ -232,8 +231,8 @@ fn cmd_attest(file: PathBuf, key: Option<String>, out: Option<PathBuf>) -> ExitC
     ExitCode::SUCCESS
 }
 
-fn cmd_verify(file: PathBuf) -> ExitCode {
-    let text = match fs::read_to_string(&file) {
+fn cmd_verify(file: &Path) -> ExitCode {
+    let text = match fs::read_to_string(file) {
         Ok(t) => t,
         Err(e) => {
             eprintln!("error reading {}: {e}", file.display());
@@ -307,14 +306,14 @@ fn main() -> ExitCode {
             adapter_args,
             out,
         } => cmd_run(&adapter, subject, subject_version, adapter_args, out),
-        Cmd::Attest { file, key, out } => cmd_attest(file, key, out),
-        Cmd::Verify { file } => cmd_verify(file),
-        Cmd::Explore { file } => cmd_explore(file),
+        Cmd::Attest { file, key, out } => cmd_attest(&file, key.as_deref(), out),
+        Cmd::Verify { file } => cmd_verify(&file),
+        Cmd::Explore { file } => cmd_explore(&file),
     }
 }
 
-fn cmd_explore(file: PathBuf) -> ExitCode {
-    let text = match fs::read_to_string(&file) {
+fn cmd_explore(file: &Path) -> ExitCode {
+    let text = match fs::read_to_string(file) {
         Ok(t) => t,
         Err(e) => {
             eprintln!("error reading {}: {e}", file.display());

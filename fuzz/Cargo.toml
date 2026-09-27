@@ -4,10 +4,21 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[package.metadata]
+cargo-fuzz = true
+
 [dependencies]
 libfuzzer-sys = "0.4"
 touchstone-core = { path = "../crates/touchstone-core" }
 serde_json = "1.0"
+
+[[bin]]
+name = "parse-attestation"
+path = "fuzz_targets/parse-attestation.rs"
+
+[[bin]]
+name = "protocol-line"
+path = "fuzz_targets/protocol-line.rs"
 
 [workspace]
 members = []

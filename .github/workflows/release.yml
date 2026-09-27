@@ -1,0 +1,42 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  package-gate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: rustfmt, clippy }
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - run: cargo test --workspace --all-features
+      - name: every publishable crate packages clean
+        run: |
+          for p in touchstone-core touchstone-harness touchstone-identity touchstone-cli; do
+            cargo package -p "$p" --allow-dirty --list > /dev/null || exit 1
+          done
+
+  publish:
+    # Only runs on tag push after the full gate passes. Requires
+    # CARGO_REGISTRY_TOKEN in repo secrets. Order matters: each crate must
+    # hit the index before its dependents publish.
+    needs: package-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          set -e
+          for p in touchstone-core touchstone-harness touchstone-identity touchstone-cli; do
+            cargo publish -p "$p" --token "$CARGO_REGISTRY_TOKEN"
+            # crates.io index propagation
+            sleep 30
+          done
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

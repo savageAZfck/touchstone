@@ -12,11 +12,21 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.85"
 authors = ["Adam Clark <savagetism@icloud.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/savageAZfck/touchstone"
 homepage = "https://github.com/savageAZfck/touchstone"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }

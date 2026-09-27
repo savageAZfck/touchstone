@@ -47,6 +47,7 @@ impl Ed25519Signer {
     }
 
     /// Build a signer from a raw 32-byte secret.
+    #[must_use]
     pub fn from_bytes(bytes: [u8; 32]) -> Self {
         Self {
             key: SigningKey::from_bytes(&bytes),
@@ -62,11 +63,13 @@ impl Ed25519Signer {
 
     /// Hex-encoded secret key — the caller is responsible for storing it
     /// safely; this is the whole identity.
+    #[must_use]
     pub fn secret_hex(&self) -> String {
         hex::encode(self.key.to_bytes())
     }
 
     /// Hex-encoded public key, as embedded in signatures.
+    #[must_use]
     pub fn public_hex(&self) -> String {
         hex::encode(self.key.verifying_key().to_bytes())
     }
@@ -134,6 +137,7 @@ pub mod enclave {
             Ok(Self { key })
         }
 
+        /// Hex-encoded SEC1 public key point (uncompressed).
         pub fn public_hex(&self) -> Result<String, IdentityError> {
             let pub_key = self
                 .key
@@ -145,6 +149,8 @@ pub mod enclave {
             Ok(hex::encode(data.bytes()))
         }
 
+        /// Sign an attestation in place — sets the `signature` field with
+        /// scheme `secp256r1-se`. The private key never leaves the Enclave.
         pub fn sign_attestation(&self, doc: &mut Attestation) -> Result<(), IdentityError> {
             let hash = document_hash(doc);
             let sig = self

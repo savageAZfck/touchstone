@@ -87,7 +87,7 @@ fn parse_status(s: &str, control: bool) -> Option<Status> {
     })
 }
 
-/// Parse one protocol line into a CheckResult (None if unparseable).
+/// Parse one protocol line into a `CheckResult` (None if unparseable).
 fn parse_line(line: &str) -> Option<CheckResult> {
     let trimmed = line.trim();
     if trimmed.is_empty() || !trimmed.starts_with('{') {
@@ -160,25 +160,8 @@ impl ExecAdapter {
         loop {
             match rx.recv_timeout(Duration::from_millis(100)) {
                 Ok(line) => {
-                    let trimmed = line.trim();
-                    if trimmed.is_empty() || !trimmed.starts_with('{') {
-                        continue; // adapter chatter; ignore non-JSON
-                    }
-                    match serde_json::from_str::<ProtocolLine>(trimmed) {
-                        Ok(p) => {
-                            if let (Some(organ), Some(status)) =
-                                (parse_organ(&p.organ), parse_status(&p.status, p.control))
-                            {
-                                results.push(CheckResult {
-                                    id: p.check,
-                                    organ,
-                                    status,
-                                    evidence: p.evidence,
-                                    control: p.control,
-                                });
-                            }
-                        }
-                        Err(_) => continue,
+                    if let Some(r) = parse_line(&line) {
+                        results.push(r);
                     }
                 }
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
@@ -197,7 +180,7 @@ impl ExecAdapter {
                             }
                             break;
                         }
-                        Ok(None) => continue,
+                        Ok(None) => {}
                         Err(_) => break,
                     }
                 }
@@ -315,7 +298,7 @@ mod tests {
 
     struct Toy;
     impl Adapter for Toy {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "toy"
         }
         fn run(&self) -> Vec<CR> {

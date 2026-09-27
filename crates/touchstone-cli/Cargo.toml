@@ -7,7 +7,6 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-homepage.workspace = true
 keywords = ["cli", "conformance", "attestation", "agi", "audit"]
 categories = ["command-line-utilities", "development-tools::testing"]
 readme = "../../README.md"
@@ -15,6 +14,9 @@ readme = "../../README.md"
 [[bin]]
 name = "touchstone"
 path = "src/main.rs"
+
+[lints]
+workspace = true
 
 [dependencies]
 touchstone-core = { path = "../touchstone-core", version = "0.1.0" }
@@ -26,3 +28,7 @@ clap = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 chrono = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

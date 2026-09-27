@@ -3,13 +3,89 @@ on:
   push: { branches: [main] }
   pull_request:
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  test:
+  lint:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with: { components: rustfmt, clippy }
       - run: cargo fmt --all -- --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        toolchain: [stable, "1.85"] # stable + declared MSRV
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with: { toolchain: ${{ matrix.toolchain }} }
       - run: cargo test --workspace
-      - run: cargo test -p touchstone-core --all-features
+      - name: all-features test (secure-enclave compiles on macos)
+        run: cargo test --workspace --all-features
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: wasm32-unknown-unknown }
+      - run: cargo check -p touchstone-core -p touchstone-identity -p touchstone-wasm --target wasm32-unknown-unknown
+
+  js-verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: independent verifier agrees on every vector
+        run: |
+          set -e
+          node verifiers/js/verify.mjs testvectors/conformant.badapple.json
+          for f in testvectors/invalid.*.json testvectors/tampered.badapple.json; do
+            if node verifiers/js/verify.mjs "$f"; then
+              echo "FAIL: $f verified but must not" && exit 1
+            fi
+          done
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: missing_docs is denied on publishable crates
+        env: { RUSTDOCFLAGS: "-D missing_docs" }
+        run: cargo doc -p touchstone-core -p touchstone-harness -p touchstone-identity -p touchstone-cli --no-deps
+
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: package file lists are clean
+        run: |
+          for p in touchstone-core touchstone-harness touchstone-identity touchstone-cli; do
+            cargo package -p "$p" --allow-dirty --list > /dev/null
+          done
+
+  fuzz-smoke:
+    # Short fuzz burst per PR — deep fuzzing runs elsewhere; this proves
+    # the targets build and no parser panic is trivially reachable.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo install cargo-fuzz
+      - run: cargo fuzz run parse-attestation -- -max_total_time=30
+      - run: cargo fuzz run protocol-line -- -max_total_time=30
