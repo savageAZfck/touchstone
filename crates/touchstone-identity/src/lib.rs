@@ -242,7 +242,9 @@ mod tests {
         let signer = crate::enclave::EnclaveSigner::generate()
             .expect("Secure Enclave keygen failed — is this a Mac with T2/M-chip?");
         let mut d = doc();
-        signer.sign_attestation(&mut d).expect("enclave sign failed");
+        signer
+            .sign_attestation(&mut d)
+            .expect("enclave sign failed");
         let sig = d.signature.as_ref().unwrap();
         assert_eq!(sig.scheme, "secp256r1-se");
         assert_eq!(sig.pubkey.len(), 130); // uncompressed SEC1 point
