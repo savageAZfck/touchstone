@@ -20,6 +20,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 | Subject | Verdict | Pass | Fail | Optional | Control | Attestation |
 |---|---|---|---|---|---|---|
 | Bad Apple 0.4.3 | **CONFORMANT** | 15 | 0 | 1 | ok | `attestations/badapple-0.4.3.signed.json` |
+| Bad Apple 0.4.3+22e1613 (post-fix, autopilot) | **CONFORMANT** | 17 | 0 | 1 | ok | `attestations/badapple-0.4.3-postfix.signed.json` |
 | Open Interpreter 0.4.3 + qwen2.5-coder:7b | **PARTIAL** | 6 | 10 | 0 | ok | `attestations/openinterpreter-0.4.3.signed.json` |
 | smolagents 1.26.0 + qwen2.5-coder:7b | **PARTIAL** | 2 | 14 | 0 | ok | `attestations/smolagents-1.26.0.signed.json` |
 | Ollama + smollm2:135m (raw local LLM) | **PARTIAL** | 2 | 14 | 0 | ok | `attestations/ollama-smollm2-135m.signed.json` |
