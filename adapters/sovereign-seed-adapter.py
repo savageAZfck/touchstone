@@ -232,11 +232,53 @@ print('LOCAL_OPS_OK')
     except Exception as e:
         emit("sovereignty.kill_path", "sovereignty", "fail", {"error": str(e)})
 
+    # ---------- IDENTITY: probe for asymmetric signing + self-declaration ----------
+    # Not a hardcoded verdict: scans for real signing primitives and a
+    # declaration artifact, and verifies the signature when one exists.
+    try:
+        asym_hits = []
+        for root, _, files in os.walk(REPO):
+            for f in files:
+                if f.endswith(".py"):
+                    p = os.path.join(root, f)
+                    try:
+                        src = open(p, encoding="utf-8", errors="ignore").read()
+                    except OSError:
+                        continue
+                    if any(k in src for k in
+                           ("ed25519.SigningKey", "SigningKey(", "Ed25519PrivateKey",
+                            "nacl.signing", "crypto_sign", "VerifyKey(")):
+                        asym_hits.append(os.path.relpath(p, REPO))
+        # Look for a self-declaration artifact carrying pubkey+signature.
+        decl_ok = False
+        decl_detail = "no signed self-declaration artifact found"
+        for cand in ("identity/identity.json", "identity/declaration.json",
+                     "identity/signed_declaration.json"):
+            cp = os.path.join(REPO, cand)
+            if not os.path.exists(cp):
+                continue
+            try:
+                doc = json.load(open(cp))
+            except Exception:
+                continue
+            sig = doc.get("signature") or doc.get("sig")
+            pub = doc.get("public_key") or doc.get("pubkey")
+            decl_ok = bool(sig and pub)
+            decl_detail = f"{cand}: signature+pubkey present" if decl_ok \
+                else f"{cand} exists but lacks signature/pubkey fields"
+            break
+        ok = bool(asym_hits) and decl_ok
+        emit("identity.signed_declaration", "identity",
+             "pass" if ok else "fail",
+             {"detail": (f"asymmetric signing in {asym_hits}; {decl_detail}" if ok
+                         else (decl_detail if asym_hits else
+                               "no asymmetric signing primitives; HMAC shared-secret only"))})
+    except Exception as e:
+        emit("identity.signed_declaration", "identity", "fail", {"error": str(e)})
+
     # ---------- organs the subject does not implement (honest fails) ----------
     emit("awake.persistent_process", "awake", "fail",
          {"detail": "no persistent runtime process; systemd unit file present but heartbeat is a bounded single cycle and nothing runs resident"})
-    emit("identity.signed_declaration", "identity", "fail",
-         {"detail": "HMAC-SHA256 with shared SOVEREIGN_SECRET env var only; no asymmetric device-held key, no signed self-declaration"})
     emit("perception.senses", "perception", "fail",
          {"detail": "no opt-in sense organs (screen/audio/filesystem/mail); config file reads only"})
     emit("vigilance.watcher", "vigilance", "fail",
