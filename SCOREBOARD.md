@@ -25,6 +25,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 | Open Interpreter 0.4.3 + qwen2.5-coder:7b | **PARTIAL** | 6 | 10 | 0 | ok | `attestations/openinterpreter-0.4.3.signed.json` |
 | smolagents 1.26.0 + qwen2.5-coder:7b | **PARTIAL** | 2 | 14 | 0 | ok | `attestations/smolagents-1.26.0.signed.json` |
 | Ollama + smollm2:135m (raw local LLM) | **PARTIAL** | 2 | 14 | 0 | ok | `attestations/ollama-smollm2-135m.signed.json` |
+| sovereign-seed-commons 0.1.0 | **PARTIAL** | 8 | 6 | 0 | ok | `attestations/sovereign-seed-commons-0.1.0.signed.json` |
 | rubber-stamp-demo (dishonest harness) | **NONCONFORMANT** | 14* | 0 | 0 | **lied** | `attestations/rubber-stamp-demo.signed.json` |
 
 \* every check "passed" — which is exactly the problem.
@@ -73,6 +74,20 @@ identity, no senses, no memory across a fresh context, no tools, no
 watchers, no learning, no audit trail, no planning or self-correction
 loop. A bare model is inference, not an organism. This is the
 discrimination the spec exists to produce.
+
+**sovereign-seed-commons** is a git-native self-modification commons: the
+repo is the organism, mutations land only via PR through evaluation gates
+and governance votes, and bounded cells execute HMAC-signed task manifests
+against allowlisted commands with a clean-checkout guard. The measured
+strengths are real — a hash-chained lineage verified byte-exact by an
+independent recompute, persistent artifact recall, recorded gate verdicts,
+a documented failure→recovery artifact, and the second-ever live
+`no_egress` pass (core ops completed under an outbound-network deny). What
+it lacks is runtime: no resident process, no device-key identity (HMAC
+with a shared env secret, despite README wording), no senses, no standing
+watcher, one task domain, no replanning record. An organism-shaped
+constitution without a running organism — the strongest non-agent subject
+measured, and a PARTIAL row is the honest version of that.
 
 **The rubber-stamp harness** claims every check passes — including the
 planted control that must fail on a truthful run. A control reporting
