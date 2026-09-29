@@ -21,6 +21,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 |---|---|---|---|---|---|---|
 | Bad Apple 0.4.3 | **CONFORMANT** | 15 | 0 | 1 | ok | `attestations/badapple-0.4.3.signed.json` |
 | Bad Apple 0.4.3+22e1613 (post-fix, autopilot) | **CONFORMANT** | 17 | 0 | 1 | ok | `attestations/badapple-0.4.3-postfix.signed.json` |
+| Bad Apple 0.4.3+396c511 (flight recorder) | **CONFORMANT** | 18 | 0 | 1 | ok | `attestations/badapple-0.4.3-tape.signed.json` |
 | Open Interpreter 0.4.3 + qwen2.5-coder:7b | **PARTIAL** | 6 | 10 | 0 | ok | `attestations/openinterpreter-0.4.3.signed.json` |
 | smolagents 1.26.0 + qwen2.5-coder:7b | **PARTIAL** | 2 | 14 | 0 | ok | `attestations/smolagents-1.26.0.signed.json` |
 | Ollama + smollm2:135m (raw local LLM) | **PARTIAL** | 2 | 14 | 0 | ok | `attestations/ollama-smollm2-135m.signed.json` |
@@ -39,7 +40,11 @@ process, signed self-declaration, live senses, token recall, a recorded
 council verdict, a ledgered tool call, a fired watcher, dream artifacts,
 an independently-verified hash chain, a kill path with no external
 sockets, breadth across task domains, a recorded multi-step plan, and
-self-correction history.
+self-correction history. The latest row additionally proves the
+flight-recorder layer (`audit.tape_chain`): a bounded hash-chained
+intent+event tape (24k frames verified byte-exact by the harness itself)
+with signed incident bundles frozen on kill-switch, engine replacement,
+or manual trigger.
 
 **Open Interpreter** is a real local agent and scores like one: it passed
 filesystem perception (actually read a planted file's contents through

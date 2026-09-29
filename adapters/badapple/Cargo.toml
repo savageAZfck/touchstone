@@ -22,3 +22,4 @@ serde_json = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 chrono = { workspace = true }
+flight_tape = "0.1"

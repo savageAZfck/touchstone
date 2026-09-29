@@ -427,6 +427,87 @@ fn check_audit() {
         "fail",
         &json!({ "reason": "planted control: asserts empty ledger; expected to fail" }),
     );
+
+    // Flight recorder: re-verify the tape ring's hash chain with the
+    // flight_tape crate — an independent implementation, not the daemon's
+    // own code path. Byte-exact per-frame hashes (float/escape drift across
+    // serde builds is why the commitment is to stored bytes).
+    let tape_dir = PathBuf::from("/var/lib/bad_apple/tape");
+    let ring_path = tape_dir.join("ring.jsonl");
+    let mut tip = flight_tape::frame::genesis_hash();
+    let mut tape_checked = 0u64;
+    let mut tape_broken = false;
+    let mut first_seq = 0u64;
+    let mut last_seq = 0u64;
+    if let Ok(content) = std::fs::read_to_string(&ring_path) {
+        for (i, line) in content.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            // A compacted ring's floor cites dropped context — verify its
+            // self-hash only; linkage is checked from the second frame on.
+            let ok = if tape_checked == 0 {
+                match (
+                    serde_json::from_str::<serde_json::Value>(line),
+                    flight_tape::frame::raw_body(line),
+                ) {
+                    (Ok(f), Some(canon)) => {
+                        let prev = flight_tape::frame::decode_hash(
+                            f["prev_hash"].as_str().unwrap_or_default(),
+                        )
+                        .unwrap_or(tip);
+                        hex::encode(flight_tape::frame::Frame::compute_hash(
+                            &prev,
+                            f["seq"].as_u64().unwrap_or(0),
+                            f["ts"].as_u64().unwrap_or(0),
+                            f["kind"].as_str().unwrap_or_default(),
+                            f["src"].as_str().unwrap_or_default(),
+                            canon.as_bytes(),
+                        )) == f["hash"].as_str().unwrap_or_default()
+                    }
+                    _ => false,
+                }
+            } else {
+                flight_tape::frame::Frame::verify_line(line, &tip) == Some(true)
+            };
+            if ok {
+                if let Ok(f) = serde_json::from_str::<serde_json::Value>(line) {
+                    if tape_checked == 0 {
+                        first_seq = f["seq"].as_u64().unwrap_or(0);
+                    }
+                    last_seq = f["seq"].as_u64().unwrap_or(0);
+                    tip = flight_tape::frame::decode_hash(f["hash"].as_str().unwrap_or_default())
+                        .unwrap_or(tip);
+                }
+                tape_checked += 1;
+            } else {
+                tape_broken = true;
+                eprintln!("[badapple-adapter] tape chain broke at line {}", i + 1);
+                break;
+            }
+        }
+    }
+    let tape_daemon = run("pgrep", &["-f", "badapple-tape daemon"]);
+    let tape_running = !tape_daemon.is_empty();
+    let incidents = std::fs::read_dir(tape_dir.join("incidents"))
+        .map(|rd| rd.filter_map(|e| e.ok()).count())
+        .unwrap_or(0);
+    emit(
+        "audit.tape_chain",
+        "audit",
+        if tape_checked > 0 && !tape_broken && tape_running {
+            "pass"
+        } else {
+            "fail"
+        },
+        &json!({
+            "frames_verified": tape_checked,
+            "window": [first_seq, last_seq],
+            "head": hex::encode(tip),
+            "daemon_running": tape_running,
+            "incident_bundles": incidents,
+        }),
+    );
 }
 
 fn check_sovereignty() {
