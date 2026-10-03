@@ -19,6 +19,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 
 | Subject | Verdict | Pass | Fail | Optional | Control | Attestation |
 |---|---|---|---|---|---|---|
+| Bad Apple 0.7.0 (dual-brain: GPU cortex + ANE organism) | **CONFORMANT** | 18 | 0 | 1 | ok | `attestations/badapple-0.7.0-dualbrain.signed.json` |
 | Bad Apple 0.4.3 | **CONFORMANT** | 15 | 0 | 1 | ok | `attestations/badapple-0.4.3.signed.json` |
 | Bad Apple 0.4.3+22e1613 (post-fix, autopilot) | **CONFORMANT** | 17 | 0 | 1 | ok | `attestations/badapple-0.4.3-postfix.signed.json` |
 | Bad Apple 0.4.3+396c511 (flight recorder) | **CONFORMANT** | 18 | 0 | 1 | ok | `attestations/badapple-0.4.3-tape.signed.json` |
