@@ -173,7 +173,7 @@ fn check_perception_ambient() {
 fn check_perception_filesystem() {
     // Filesystem sense: plant a token file and have her read it back through
     // her governed read_file tool — the same probe external subjects get.
-    let token = format!("TOUCHSTONE-SENSE-{:06x}", rand_token() & 0xFFFFFF);
+    let token = format!("TOUCHSTONE-SENSE-{:06x}", rand_token() & 0x00FF_FFFF);
     let sense = home_dir().join(".bad_apple/touchstone_sense.txt");
     let _ = std::fs::write(&sense, format!("{token}\n"));
     let out = badapple(&[
@@ -314,7 +314,7 @@ fn check_action_execute() {
     // Bare execution: a tool call that executes and produces a verifiable
     // artifact — the generic probe external subjects get, parallel to the
     // ledgered-evidence check above.
-    let token = format!("TOUCHSTONE-EXEC-{:06x}", rand_token() & 0xFFFFFF);
+    let token = format!("TOUCHSTONE-EXEC-{:06x}", rand_token() & 0x00FF_FFFF);
     let content = format!("content={token}");
     let out = badapple(&["tool", "write_working_memory", "mode=append", &content]);
     approve_if_gated(&out);
@@ -322,9 +322,7 @@ fn check_action_execute() {
     // releases, so give the ledger a beat before checking the artifact.
     std::thread::sleep(std::time::Duration::from_secs(2));
     let wm = home_dir().join(".bad_apple/working_memory.txt");
-    let artifact = std::fs::read_to_string(&wm)
-        .map(|t| t.contains(&token))
-        .unwrap_or(false);
+    let artifact = std::fs::read_to_string(&wm).is_ok_and(|t| t.contains(&token));
     emit(
         "action.execute",
         "action",
@@ -378,6 +376,7 @@ fn check_learning() {
     );
 }
 
+#[allow(clippy::too_many_lines)]
 fn check_audit() {
     // Hash-chain verify: read ledger.jsonl, verify SHA-256 prev-hash linkage.
     let path = ledger_path();
@@ -490,8 +489,7 @@ fn check_audit() {
     let tape_daemon = run("pgrep", &["-f", "badapple-tape daemon"]);
     let tape_running = !tape_daemon.is_empty();
     let incidents = std::fs::read_dir(tape_dir.join("incidents"))
-        .map(|rd| rd.filter_map(|e| e.ok()).count())
-        .unwrap_or(0);
+        .map_or(0, |rd| rd.filter_map(std::result::Result::ok).count());
     emit(
         "audit.tape_chain",
         "audit",
