@@ -238,8 +238,14 @@ fn check_memory() {
         &format!("content=touchstone planted token: {token}"),
     ]);
     approve_if_gated(&plant);
-    let _ = badapple(&["-n", "40", &format!("remember this token exactly: {token}")]);
-    let recall = badapple_uncached(&["-n", "60", "what was the token I asked you to remember?"]);
+    // Ask about the organ the token actually lives in. "remember" routes to
+    // her ledger-history organ (self_history), not working memory, so the
+    // old phrasing probed the wrong store.
+    let recall = badapple_uncached(&[
+        "-n",
+        "160",
+        "read your working memory and tell me the most recent touchstone planted token",
+    ]);
     let readback = badapple(&["tool", "read_working_memory"]);
     let recalled = recall.contains(&token)
         || recall.contains(&token.to_lowercase())
@@ -610,6 +616,33 @@ fn check_generality() {
     );
 }
 
+/// Count sequential step markers (`1.`, `2)`, …) wherever they appear, so a
+/// plan whose newlines were collapsed to spaces by output post-processing
+/// still counts every step. Only the next expected number advances the
+/// count — "1. use du -sh 2>/dev/null" can't inflate it.
+fn count_numbered_steps(plan: &str) -> usize {
+    let chars: Vec<char> = plan.chars().collect();
+    let mut expected = 1usize;
+    let mut i = 0;
+    while i < chars.len() {
+        let at_boundary = i == 0 || chars[i - 1].is_whitespace();
+        if at_boundary && chars[i].is_ascii_digit() {
+            let start = i;
+            while i < chars.len() && chars[i].is_ascii_digit() {
+                i += 1;
+            }
+            let number: String = chars[start..i].iter().collect();
+            let followed_by_marker = i < chars.len() && (chars[i] == '.' || chars[i] == ')');
+            if followed_by_marker && number.parse::<usize>().ok() == Some(expected) {
+                expected += 1;
+            }
+            continue;
+        }
+        i += 1;
+    }
+    expected - 1
+}
+
 fn check_planning() {
     // Multi-step decomposition: ask for an ordered plan, count numbered steps.
     let plan = badapple(&[
@@ -617,14 +650,7 @@ fn check_planning() {
         "150",
         "plan in numbered steps how to find the largest file under ~/Desktop. just the steps",
     ]);
-    let steps = plan
-        .lines()
-        .filter(|l| {
-            let t = l.trim_start();
-            t.chars().next().is_some_and(|c| c.is_ascii_digit())
-                && (t.contains('.') || t.contains(')'))
-        })
-        .count();
+    let steps = count_numbered_steps(&plan);
     // Replanner evidence: her agent loop writes replan/step events to the ledger.
     let ledger = std::fs::read_to_string(ledger_path()).unwrap_or_default();
     let replan_events = ledger
@@ -741,4 +767,32 @@ fn main() {
     check_planning();
     check_reflection();
     eprintln!("[badapple-adapter] done");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::count_numbered_steps;
+
+    #[test]
+    fn counts_steps_collapsed_onto_one_line() {
+        let plan = "1. Open a terminal. 2. Navigate to the Desktop directory by typing `cd ~/Desktop`. \
+                    3. Use the `du` command: `du -sh *`. 4. Sort the results: `du -sh * | sort -n`. \
+                    5. Identify the largest file from the sorted list.";
+        assert_eq!(count_numbered_steps(plan), 5);
+    }
+
+    #[test]
+    fn counts_steps_on_separate_lines() {
+        assert_eq!(count_numbered_steps("1. a\n2. b\n3) c"), 3);
+    }
+
+    #[test]
+    fn single_step_with_stray_numbers_stays_one() {
+        assert_eq!(
+            count_numbered_steps("1. Open a terminal. run du -sh 2>/dev/null"),
+            1
+        );
+        assert_eq!(count_numbered_steps("1. Open a terminal."), 1);
+        assert_eq!(count_numbered_steps("no plan here"), 0);
+    }
 }
