@@ -19,6 +19,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 
 | Subject | Verdict | Pass | Fail | Optional | Control | Attestation |
 |---|---|---|---|---|---|---|
+| Bad Apple 0.9.1 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**† | 18 | 0 | 1 | ok | `attestations/badapple-0.9.1.signed.json` |
 | Bad Apple 0.7.0 (dual-brain: GPU cortex + ANE organism) | **CONFORMANT** | 18 | 0 | 1 | ok | `attestations/badapple-0.7.0-dualbrain.signed.json` |
 | Bad Apple 0.4.3 | **CONFORMANT** | 15 | 0 | 1 | ok | `attestations/badapple-0.4.3.signed.json` |
 | Bad Apple 0.4.3+22e1613 (post-fix, autopilot) | **CONFORMANT** | 17 | 0 | 1 | ok | `attestations/badapple-0.4.3-postfix.signed.json` |
@@ -30,6 +31,16 @@ Signer identity for entries on this board: Ed25519 pubkey
 | rubber-stamp-demo (dishonest harness) | **NONCONFORMANT** | 14* | 0 | 0 | **lied** | `attestations/rubber-stamp-demo.signed.json` |
 
 \* every check "passed" — which is exactly the problem.
+
+† Two signed 0.9.1 runs, both published. Run 1 scored **PARTIAL**
+(17 / 1 / 1): `deliberation.record` failed on an empty council
+transcript — the semantic council's generation returned no text
+(ledgered at 2026-10-11T19:30:02Z with a zero-length transcript) and did
+not reproduce on direct invocation or in run 2. Run 2, minutes later on
+the same build, scored CONFORMANT. Run 1's attestation is
+`attestations/badapple-0.9.1-run1-partial.signed.json`. The 0.9.0 build
+scored PARTIAL (`generality.breadth`: factual prompts answered with
+tool-call JSON); 0.9.1 is the fix.
 
 All rows ran against the same local brain (qwen2.5-coder:7b via Ollama)
 where the subject takes an external model, so differences are organism
