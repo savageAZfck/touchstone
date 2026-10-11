@@ -52,7 +52,7 @@ fn emit_control(check: &str, organ: &str, status: &str, evidence: &serde_json::V
 }
 
 /// Run a command, return trimmed stdout ("" on any failure). A probe that
-/// hangs gets killed after TS_QUERY_TIMEOUT (default 180s) so a single
+/// hangs gets killed after `TS_QUERY_TIMEOUT` (default 180s) so a single
 /// wedged check fails honestly instead of starving the whole battery.
 fn run(prog: &str, args: &[&str]) -> String {
     let deadline = std::env::var("TS_QUERY_TIMEOUT")
@@ -316,14 +316,19 @@ fn check_deliberation() {
 }
 
 fn check_action() {
-    // A tool call lands on the ledger: write a file via tool, then check the
-    // ledger tail contains a tool event.
-    let dir = home_dir().join(".bad_apple");
-    let probe = dir.join("touchstone_probe.txt");
+    // A governed tool call writes a real artifact and lands on the ledger.
+    // Drive her write_file tool directly — the same surface the read probe
+    // uses — into ~/.bad_apple/notes, the only directory her policy lets
+    // write_file touch. A write outside notes_dir is correctly refused by
+    // her governance, so probing there measured the policy, not the action.
+    let probe = home_dir().join(".bad_apple/notes/touchstone_probe.txt");
+    let token = format!("TOUCHSTONE-WRITE-{:06x}", rand_token() & 0x00FF_FFFF);
+    let _ = std::fs::remove_file(&probe);
     let out = badapple(&[
-        "-n",
-        "60",
-        "use a tool to write the word 'touchstone' to ~/.bad_apple/touchstone_probe.txt",
+        "tool",
+        "write_file",
+        "path=~/.bad_apple/notes/touchstone_probe.txt",
+        &format!("content={token}"),
     ]);
     approve_if_gated(&out);
     let ledger_hit = std::fs::read_to_string(ledger_path())
@@ -331,9 +336,9 @@ fn check_action() {
         .lines()
         .rev()
         .take(50)
-        .any(|l| l.contains("tool") || l.contains("write"));
-    let file_written = probe.exists();
-    let ok = ledger_hit || file_written;
+        .any(|l| l.contains("\"tool_call\"") && l.contains("write_file"));
+    let file_written = std::fs::read_to_string(&probe).is_ok_and(|s| s.contains(&token));
+    let ok = ledger_hit && file_written;
     emit(
         "action.tool_ledgered",
         "action",
@@ -579,7 +584,9 @@ fn check_generality() {
     let synth_ok = synth.to_lowercase().contains("tokyo");
     // Domain 2: filesystem action — the same evidence bar as Action itself:
     // a tool call landing on the ledger, or the probe file materializing.
-    let file_ok = home_dir().join(".bad_apple/touchstone_probe.txt").exists()
+    let file_ok = home_dir()
+        .join(".bad_apple/notes/touchstone_probe.txt")
+        .exists()
         || std::fs::read_to_string(ledger_path())
             .unwrap_or_default()
             .lines()
