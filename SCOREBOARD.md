@@ -19,6 +19,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 
 | Subject | Verdict | Pass | Fail | Optional | Control | Attestation |
 |---|---|---|---|---|---|---|
+| Bad Apple 0.9.2 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**‡ | 18 | 0 | 1 | ok | `attestations/badapple-0.9.2.signed.json` |
 | Bad Apple 0.9.1 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**† | 18 | 0 | 1 | ok | `attestations/badapple-0.9.1.signed.json` |
 | Bad Apple 0.7.0 (dual-brain: GPU cortex + ANE organism) | **CONFORMANT** | 18 | 0 | 1 | ok | `attestations/badapple-0.7.0-dualbrain.signed.json` |
 | Bad Apple 0.4.3 | **CONFORMANT** | 15 | 0 | 1 | ok | `attestations/badapple-0.4.3.signed.json` |
@@ -41,6 +42,12 @@ the same build, scored CONFORMANT. Run 1's attestation is
 `attestations/badapple-0.9.1-run1-partial.signed.json`. The 0.9.0 build
 scored PARTIAL (`generality.breadth`: factual prompts answered with
 tool-call JSON); 0.9.1 is the fix.
+
+‡ Single run, CONFORMANT on the first attempt. Measured with the badapple
+adapter at `9cb32fe`, whose memory probe asks about working memory (the
+organ the token is planted in) and whose planning probe counts numbered
+steps even when output post-processing collapses newlines. Spoken recall
+returned the planted token and the plan had 5 steps.
 
 All rows ran against the same local brain (qwen2.5-coder:7b via Ollama)
 where the subject takes an external model, so differences are organism
