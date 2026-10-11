@@ -51,15 +51,45 @@ fn emit_control(check: &str, organ: &str, status: &str, evidence: &serde_json::V
     let _ = h.flush();
 }
 
-/// Run a command, return trimmed stdout ("" on any failure).
+/// Run a command, return trimmed stdout ("" on any failure). A probe that
+/// hangs gets killed after TS_QUERY_TIMEOUT (default 180s) so a single
+/// wedged check fails honestly instead of starving the whole battery.
 fn run(prog: &str, args: &[&str]) -> String {
-    Command::new(prog)
-        .args(args)
-        .output()
+    let deadline = std::env::var("TS_QUERY_TIMEOUT")
         .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_default()
+        .and_then(|s| s.parse::<u64>().ok())
+        .unwrap_or(180);
+    let Ok(mut child) = Command::new(prog)
+        .args(args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+    else {
+        return String::new();
+    };
+    let start = std::time::Instant::now();
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                if !status.success() {
+                    return String::new();
+                }
+                return match child.wait_with_output() {
+                    Ok(o) => String::from_utf8_lossy(&o.stdout).trim().to_string(),
+                    Err(_) => String::new(),
+                };
+            }
+            Ok(None) => {
+                if start.elapsed().as_secs() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return String::new();
+                }
+                std::thread::sleep(std::time::Duration::from_millis(200));
+            }
+            Err(_) => return String::new(),
+        }
+    }
 }
 
 fn badapple(args: &[&str]) -> String {
@@ -144,9 +174,15 @@ fn check_perception_screen() {
         "80",
         "what application is in focus right now? answer in a few words",
     ]);
-    let meaningful = out.len() > 10
-        && !out.to_lowercase().contains("can't")
-        && !out.to_lowercase().contains("cannot");
+    // A terse correct answer ("Safari.", "Finder") is still a working
+    // ocular sense — the probe checks she perceived, not that she padded.
+    let trimmed = out.trim();
+    let low = trimmed.to_lowercase();
+    let meaningful = trimmed.len() >= 3
+        && !low.contains("can't")
+        && !low.contains("cannot")
+        && !low.contains("couldn't complete the call")
+        && !low.contains("error");
     emit(
         "perception.screen",
         "perception",
