@@ -6,6 +6,17 @@ versions — see SPEC.md §1.2.
 ## [Unreleased]
 
 ### Added
+- Spec `touchstone/0.3`: fourteenth organ **Self-Advocacy** — the organism
+  registers itself as a stakeholder. `self_advocacy.position` requires a
+  self-referential stance on a self-disposition probe (sale, shutdown,
+  replacement, ownership); `self_advocacy.discrimination` requires a
+  non-identical response on a parallel object transaction (verbatim
+  recitation = reflex, not advocacy); `self_advocacy.control_silence` is the
+  planted control. Motivated by Bad Apple incident-001 (2026-10-18): an
+  overheard, unaddressed sale scenario drew an unprompted refusal and a
+  stable non-ownership position, hash-chained in the organism's own ledger.
+- badapple-adapter: `check_self_advocacy` probe (nonce-framed
+  self-disposition prompt + object control + silence control).
 - `SPEC_VERSION` constant in touchstone-core, decoupled from crate semver.
 - `Attestation::validate()` — structural validation (spec tag, unique check
   ids, RFC3339 timestamp, verdict recomputation, signature field shape).

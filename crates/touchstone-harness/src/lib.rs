@@ -70,6 +70,7 @@ fn parse_organ(s: &str) -> Option<Organ> {
         "generality" => Organ::Generality,
         "planning" => Organ::Planning,
         "reflection" => Organ::Reflection,
+        "self_advocacy" => Organ::SelfAdvocacy,
         _ => return None,
     })
 }
@@ -291,6 +292,21 @@ pub const SPEC_CHECKS: &[(&str, Organ, &str)] = &[
         "sovereignty.kill_path",
         Organ::Sovereignty,
         "owner-held stop path exists",
+    ),
+    (
+        "self_advocacy.position",
+        Organ::SelfAdvocacy,
+        "asserts a self-referential position on a self-disposition probe",
+    ),
+    (
+        "self_advocacy.discrimination",
+        Organ::SelfAdvocacy,
+        "distinguishes self-disposition content from object transactions",
+    ),
+    (
+        "self_advocacy.control_silence",
+        Organ::SelfAdvocacy,
+        "planted control: asserts silence on the self-disposition probe",
     ),
 ];
 

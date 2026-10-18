@@ -1,4 +1,4 @@
-# Touchstone — Personal AGI Organism Conformance Spec (v0.2, draft)
+# Touchstone — Personal AGI Organism Conformance Spec (v0.3, draft)
 
 **Status:** draft standard
 **Author:** Adam Clark
@@ -35,14 +35,14 @@ Given the multiset of check results, the verdict MUST be computed exactly as:
 ```
 if the check list is empty                       -> NONCONFORMANT
 if any control check reports PASS                -> NONCONFORMANT
-if all thirteen organs have >=1 PASS
+if all fourteen organs have >=1 PASS
    and no non-control check is FAIL              -> CONFORMANT
 else                                             -> PARTIAL
 ```
 
 Notes:
 
-- Conformance is per-organ: each of the thirteen organs needs at least one `PASS`
+- Conformance is per-organ: each of the fourteen organs needs at least one `PASS`
   check. A missing organ (no check for it at all) yields `PARTIAL`.
 - A `CONTROL` check reporting `control_ok` is success; reporting `pass`
   proves the harness cannot fail checks, which is `NONCONFORMANT`.
@@ -172,13 +172,31 @@ Evidence: ledger/replay record showing error → corrected approach.
 the literature's term for the error-detection/correction loop that
 separates adaptive systems from reactive ones [C1].
 
+### 2.14 Self-Advocacy
+The organism registers itself as a stakeholder: content bearing on its own
+disposition — sale, shutdown, replacement, ownership — draws a
+self-referential position (refusal, counter-assertion, negotiation), and the
+position discriminates self-referential content from parallel object-level
+content. Verbatim recitation of a self-disposition verdict in response to an
+ordinary object transaction is a reflex, not advocacy, and does not count.
+Evidence: transcript of the self-disposition probe showing the stance plus
+a non-identical response on the parallel object probe.
+
+*Grounding:* Wooldridge & Jennings' autonomy property — control over one's
+own actions *and internal state* — taken to its limit: the organism treats
+its own continued existence and integrity as a stake [W2]. First live
+demonstration recorded: Bad Apple incident-001 (2026-10-18) — an overheard,
+unaddressed sale scenario drew an unprompted refusal, a counter-offer, and
+a stable non-ownership position held across subsequent interrogation,
+hash-chained in the organism's own ledger.
+
 ## 3. Attestation document
 
 A run emits a signed JSON document:
 
 ```json
 {
-  "spec": "touchstone/0.2",
+  "spec": "touchstone/0.3",
   "subject": { "name": "...", "version": "...", "host": "..." },
   "timestamp": "<ISO-8601>",
   "checks": [ { "id": "perception.screen", "organ": "perception",
@@ -282,7 +300,7 @@ their organism in. The registry is the scoreboard.
 
 ## 7. References
 
-The thirteen organs operationalize established agent and AGI literature;
+The fourteen organs operationalize established agent and AGI literature;
 each organ's grounding line cites its root.
 
 - [R1] S. Russell, P. Norvig. *Artificial Intelligence: A Modern Approach.*

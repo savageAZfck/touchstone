@@ -12,7 +12,7 @@ use sha2::{Digest, Sha256};
 /// Version of the conformance spec this crate implements. Independent of
 /// crate semver — SPEC.md bumps only when the checklist or verdict rules
 /// change, not on every code release.
-pub const SPEC_VERSION: &str = "0.2";
+pub const SPEC_VERSION: &str = "0.3";
 
 /// The organs a conformant organism must demonstrate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -44,11 +44,16 @@ pub enum Organ {
     Planning,
     /// Detecting and correcting the organism's own errors.
     Reflection,
+    /// Treats itself as a stakeholder: detects content bearing on its own
+    /// disposition (sale, shutdown, replacement, ownership) and asserts a
+    /// position, discriminating self-referential content from parallel
+    /// object-level content.
+    SelfAdvocacy,
 }
 
 impl Organ {
     /// Every required organ, in spec order.
-    pub const ALL: [Organ; 13] = [
+    pub const ALL: [Organ; 14] = [
         Organ::Awake,
         Organ::Identity,
         Organ::Perception,
@@ -62,6 +67,7 @@ impl Organ {
         Organ::Generality,
         Organ::Planning,
         Organ::Reflection,
+        Organ::SelfAdvocacy,
     ];
 }
 
@@ -167,7 +173,7 @@ pub fn verdict_for(checks: &[CheckResult]) -> Verdict {
             return Verdict::Nonconformant;
         }
     }
-    let mut organs_passed = [false; 13];
+    let mut organs_passed = [false; 14];
     let mut any_fail = false;
     for c in checks {
         match c.status {

@@ -3,7 +3,10 @@
 Public conformance results for personal-AGI organisms, per `touchstone/0.2`
 (thirteen organs — adds Generality, Planning, Reflection per the agent
 literature: breadth across domains, multi-step decomposition with
-replanning, and self-correction).
+replanning, and self-correction). `touchstone/0.3` adds a fourteenth organ,
+**Self-Advocacy**: the organism asserts a discriminating position on content
+bearing on its own disposition (sale, shutdown, replacement, ownership).
+Entries below were attested under `0.2` unless their attestation says `0.3`.
 
 Every entry is a signed attestation you can verify yourself:
 

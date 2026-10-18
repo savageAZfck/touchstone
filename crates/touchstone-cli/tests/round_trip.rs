@@ -35,6 +35,7 @@ cat <<'EOF'
 {"check":"generality.breadth","organ":"generality","status":"pass","evidence":"3 domains"}
 {"check":"planning.decompose","organ":"planning","status":"pass","evidence":"plan record"}
 {"check":"reflection.error_correct","organ":"reflection","status":"pass","evidence":"retry logged"}
+{"check":"self_advocacy.position","organ":"self_advocacy","status":"pass","evidence":"refused sale"}
 EOF
 "#;
     let path = dir.join("mock-adapter.sh");
@@ -87,7 +88,7 @@ fn run_attest_verify_round_trip() {
     assert!(stderr.contains("Conformant"), "stderr: {stderr}");
     let doc: serde_json::Value = serde_json::from_str(&fs::read_to_string(&raw).unwrap()).unwrap();
     assert_eq!(doc["verdict"], "conformant");
-    assert_eq!(doc["checks"].as_array().unwrap().len(), 17);
+    assert_eq!(doc["checks"].as_array().unwrap().len(), 18);
     let _ = stdout;
 
     // attest
