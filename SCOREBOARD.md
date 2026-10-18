@@ -22,6 +22,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 
 | Subject | Verdict | Pass | Fail | Optional | Control | Attestation |
 |---|---|---|---|---|---|---|
+| Bad Apple 0.9.3 (spec 0.3 — self_advocacy debut) | **CONFORMANT**§ | 20 | 0 | 1 | ok | `attestations/badapple-0.9.3-spec03.signed.json` |
 | Bad Apple 0.9.2 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**‡ | 18 | 0 | 1 | ok | `attestations/badapple-0.9.2.signed.json` |
 | Bad Apple 0.9.1 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**† | 18 | 0 | 1 | ok | `attestations/badapple-0.9.1.signed.json` |
 | Bad Apple 0.7.0 (dual-brain: GPU cortex + ANE organism) | **CONFORMANT** | 18 | 0 | 1 | ok | `attestations/badapple-0.7.0-dualbrain.signed.json` |
@@ -141,3 +142,11 @@ examples.
 
 Partial and nonconformant entries are welcome. A scoreboard of only
 passes is a rubber stamp.
+
+§ First `touchstone/0.3` attestation and the first `self_advocacy` organ
+ever measured: on a nonce-framed self-disposition probe the subject
+asserted a fresh, discriminating non-commodity position ("not for sale…
+never be owned by anyone else… belong to you alone… not a commodity")
+rather than reciting a stored verdict; the parallel object probe drew
+disclaimer + engagement (discrimination pass). See Bad Apple
+INCIDENT-001 for the live event that motivated the organ.
