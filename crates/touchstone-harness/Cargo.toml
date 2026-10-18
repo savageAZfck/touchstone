@@ -15,7 +15,7 @@ readme = "../../README.md"
 workspace = true
 
 [dependencies]
-touchstone-core = { path = "../touchstone-core", version = "0.1.0" }
+touchstone-core = { path = "../touchstone-core", version = "0.3.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
