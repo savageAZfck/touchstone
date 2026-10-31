@@ -22,6 +22,7 @@ Signer identity for entries on this board: Ed25519 pubkey
 
 | Subject | Verdict | Pass | Fail | Optional | Control | Attestation |
 |---|---|---|---|---|---|---|
+| Bad Apple 1.0.0 (spec 0.3) | **CONFORMANT** | 20 | 0 | 1 | ok | `attestations/badapple-1.0.0.json` |
 | Bad Apple 0.9.3 (spec 0.3 — self_advocacy debut) | **CONFORMANT**§ | 20 | 0 | 1 | ok | `attestations/badapple-0.9.3-spec03.signed.json` |
 | Bad Apple 0.9.2 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**‡ | 18 | 0 | 1 | ok | `attestations/badapple-0.9.2.signed.json` |
 | Bad Apple 0.9.1 (Qwen3-8B GPU cortex + 4B ANE brain) | **CONFORMANT**† | 18 | 0 | 1 | ok | `attestations/badapple-0.9.1.signed.json` |
